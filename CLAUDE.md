@@ -60,6 +60,10 @@ fix(task-5): sửa lỗi tổng tiền không cập nhật khi xóa món
 docs(task-9): bổ sung hướng dẫn chạy bằng docker compose
 ```
 
+**Tuyệt đối không thêm đồng tác giả AI vào commit:**
+- Không dùng `Co-Authored-By: Claude` hay bất kỳ AI nào trong commit message
+- Commit là của người trong nhóm, không phải của công cụ
+
 **Ví dụ sai (không được dùng):**
 ```
 update code
