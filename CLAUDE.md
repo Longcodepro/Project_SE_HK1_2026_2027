@@ -93,3 +93,10 @@ feat(task-2,task-3): làm xong ...  ← gộp 2 task
 | Backend | NestJS, TypeScript, REST, class-validator, JWT/Passport |
 | Database | PostgreSQL + Prisma |
 | DevOps | Docker Compose |
+
+## Quy ước nhánh
+
+- Mỗi task làm trên nhánh riêng: `<tên-người>/task-N-mo-ta-ngan`
+- Ví dụ: `long/task-3-trang-menu`, `tai/task-2-api-san-pham`
+- Không push thẳng vào main. Xong task thì mở Pull Request để người kia review.
+- Không tự đặt tên nhánh khác với quy ước này.
