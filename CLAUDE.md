@@ -8,13 +8,13 @@ BrewLite là ứng dụng đặt cà phê không dùng tiền mặt dành cho si
 
 | Thành viên | Vai trò | Thư mục phụ trách |
 |---|---|---|
-| Long | Frontend + Scrum Master | `frontend/` |
-| Tài | Backend | `backend/` |
+| Long | Backend + Scrum Master | `backend/` |
+| Tài | Development Team + Frontend | `frontend/` |
 
 > **AI đang hỗ trợ ai thì chỉ sửa file trong thư mục của người đó**, trừ khi được yêu cầu rõ ràng.
 >
-> - AI hỗ trợ Long → chỉ sửa `frontend/`, docs nếu cần, root config
-> - AI hỗ trợ Tài → chỉ sửa `backend/`, docs nếu cần, root config
+> - AI hỗ trợ Long → chỉ sửa `backend/`, docs nếu cần, root config
+> - AI hỗ trợ Tài → chỉ sửa `frontend/`, docs nếu cần, root config
 
 ## Quy trình — Agile Scrum 3 Sprint
 
