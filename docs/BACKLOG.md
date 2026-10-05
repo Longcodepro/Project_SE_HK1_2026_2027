@@ -17,7 +17,7 @@ Cập nhật trạng thái sau mỗi task xong. Không được tự chuyển ta
 | # | Tên task | Tiêu chí chấp nhận | Người làm | Sprint | Trạng thái |
 |---|---|---|---|---|---|
 | 1 | Khởi tạo dự án và cấu trúc | Repo có đủ cấu trúc, README hướng dẫn chạy, cả hai app chạy được | Cả hai | Sprint 1 | **Done** |
-| 2 | API danh sách sản phẩm (GET /products) | Trả mảng 4 sản phẩm, có id/name/price/stock, status 200 | Long | Sprint 1 | To do |
+| 2 | API danh sách sản phẩm (GET /products) | Trả mảng 4 sản phẩm, có id/name/price/stock, status 200 | Long | Sprint 1 | **Done** |
 | 3 | Trang Menu (Next.js) | Hiển thị danh sách sản phẩm, có loading skeleton, có empty state khi rỗng | Tài | Sprint 1 | To do |
 | 4 | Chi tiết sản phẩm — chọn size và topping | Chọn S/M/L, chọn topping, giá tự tính theo size, nút "Thêm vào giỏ" | Tài | Sprint 2 | To do |
 | 5 | Giỏ hàng: thêm/sửa/xóa, tổng tiền, badge | Thêm/sửa số lượng/xóa món, tổng tiền cập nhật, badge hiện số lượng item | Tài | Sprint 2 | To do |
