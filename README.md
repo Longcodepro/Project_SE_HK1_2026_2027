@@ -45,11 +45,19 @@ docker compose up --build
 
 ## Biến môi trường
 
+```bash
+cp .env.example .env
+# Mở .env và điền giá trị thật trước khi chạy docker compose
+```
+
 Xem `.env.example` để biết danh sách đầy đủ. Các biến quan trọng:
 
 | Biến | Mô tả |
 |---|---|
-| `DATABASE_URL` | Connection string PostgreSQL |
+| `POSTGRES_USER` | Tên user đăng nhập PostgreSQL |
+| `POSTGRES_PASSWORD` | Mật khẩu PostgreSQL — đặt chuỗi mạnh khi deploy |
+| `POSTGRES_DB` | Tên database được tạo khi container khởi động lần đầu |
+| `DATABASE_URL` | Connection string đầy đủ — phải khớp 3 biến trên |
 | `JWT_SECRET` | Secret key ký JWT (đổi trước khi deploy) |
 | `NEXT_PUBLIC_API_URL` | URL backend mà frontend gọi |
 
