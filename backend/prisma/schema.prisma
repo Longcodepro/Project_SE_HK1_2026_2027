@@ -55,6 +55,7 @@ model Order {
   total     Int
   createdAt DateTime    @default(now())
   items     OrderItem[]
+  payments  Payment[]
 }
 
 model OrderItem {
@@ -68,4 +69,29 @@ model OrderItem {
   // Lưu id các topping đã chọn, giá topping đã cộng sẵn vào lineTotal
   toppings  String[] @default([])
   lineTotal Int
+}
+
+enum PaymentMethod {
+  WALLET
+  CARD
+}
+
+enum PaymentStatus {
+  PAID
+  PAYMENT_FAILED
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Chặn thanh toán trùng khi client gửi lại cùng một request
+  idempotencyKey String @unique
+
+  amount    Int
+  method    PaymentMethod
+  status    PaymentStatus
+  createdAt DateTime      @default(now())
 }
