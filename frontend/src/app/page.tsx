@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import ProductDetailModal, { CartItemPayload } from "../components/ProductDetailModal";
+import { useCartStore } from "../store/useCartStore";
+import CartDrawer from "../components/CartDrawer";
 
 // 1. Khai báo kiểu theo đúng API Contract (docs/API-CONTRACT.md)
 interface Product {
@@ -110,13 +112,19 @@ function EmptyState({ onReset }: { onReset: () => void }) {
 export default function MenuPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cartCount, setCartCount] = useState(0);
   const [showLogin, setShowLogin] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItemPayload[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { openCart, addItem, getTotalCount } = useCartStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const cartCount = mounted ? getTotalCount() : 0;
 
   const handleOpenDetail = (product: Product) => {
     setSelectedProduct(product);
@@ -124,8 +132,7 @@ export default function MenuPage() {
   };
 
   const handleAddToCart = (item: CartItemPayload) => {
-    setCartItems((prev) => [...prev, item]);
-    setCartCount((prev) => prev + item.quantity);
+    addItem(item.product, item.size, item.toppings, item.quantity);
     setToastMessage(`Đã thêm ${item.quantity}x ${item.product.name} (Size ${item.size}) vào giỏ hàng!`);
     setTimeout(() => {
       setToastMessage(null);
@@ -180,6 +187,7 @@ export default function MenuPage() {
           <div className="relative flex items-center gap-2">
             <button
               type="button"
+              onClick={openCart}
               className="group relative flex h-10 items-center gap-2 rounded-full border border-amber-900/15 bg-[#FCF8F3] px-3.5 text-sm font-bold text-[#4E2A12] shadow-sm transition hover:-translate-y-0.5 hover:border-amber-800/30 hover:bg-[#F6EEE4] hover:shadow-md"
               aria-label={`Giỏ hàng có ${cartCount} món`}
             >
@@ -412,6 +420,9 @@ export default function MenuPage() {
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Drawer Giỏ hàng (Task 5) */}
+      <CartDrawer />
     </div>
   );
 }
