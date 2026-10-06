@@ -80,6 +80,27 @@ feat(task-2,task-3): làm xong ...  ← gộp 2 task
 - Frontend: component → PascalCase, hook → camelCase bắt đầu `use`
 - Backend: theo chuẩn NestJS (module/controller/service/dto)
 
+## File trọng điểm dùng chung — KHÔNG tự ý sửa
+
+Các file dưới đây ảnh hưởng tới cả hai người. Muốn sửa phải **DỪNG LẠI**, nêu lý do kèm diff đề xuất, chờ đồng ý rồi mới commit. Không "tiện tay" sửa khi đang làm task khác.
+
+| File | Lý do dùng chung |
+|---|---|
+| `backend/prisma/schema.prisma` | Định nghĩa bảng, đổi là đổi cả database |
+| `backend/prisma/migrations/` | Migration đã commit thì **không sửa**, chỉ tạo migration mới |
+| `backend/src/app.module.ts` | Root module, nơi đăng ký mọi sub-module |
+| `backend/src/main.ts` | Bootstrap, CORS, ValidationPipe toàn cục |
+| `docs/API-CONTRACT.md` | Hợp đồng request/response giữa FE và BE |
+| `docker-compose.yml` | Orchestration cả ba service |
+| `backend/Dockerfile`, `frontend/Dockerfile` | Cách build image |
+| `.env.example` | Danh sách biến môi trường chuẩn của nhóm |
+| `package-lock.json` (cả hai bên) | Khóa phiên bản dependency, sửa tay là vỡ `npm ci` |
+| `CLAUDE.md` | Chính file này |
+
+## Chạy dự án bằng Docker
+
+Xem mục **"Chạy nhanh"** trong [README.md](README.md). Một lệnh `docker compose up --build` là có đủ Postgres, backend và frontend.
+
 ## Definition of Done (phải đủ 6 ý mới được tick Done)
 
 1. Code chạy được, không lỗi build

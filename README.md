@@ -2,6 +2,52 @@
 
 Ứng dụng đặt cà phê không dùng tiền mặt — đồ án môn Công nghệ Phần mềm.
 
+## Chạy nhanh (khuyên dùng)
+
+Chỉ cần cài Docker, không cần Node hay PostgreSQL trên máy.
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Lệnh này dựng cả ba service: Postgres, backend (tự chạy migration và seed 4 sản phẩm mẫu), frontend.
+
+| Thành phần | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:3001 |
+
+Kiểm tra nhanh:
+
+```bash
+curl http://localhost:3001/products
+```
+
+Dừng lại:
+
+```bash
+docker compose down
+```
+
+Xóa luôn dữ liệu database để chạy lại từ đầu:
+
+```bash
+docker compose down -v
+```
+
+### Lỗi hay gặp
+
+| Lỗi | Cách xử lý |
+|---|---|
+| `port is already allocated` cho 5432 | Đổi `POSTGRES_PORT=5433` trong `.env` |
+| `port is already allocated` cho 3000 hoặc 3001 | Đổi `FRONTEND_PORT` hoặc `BACKEND_PORT` trong `.env` |
+| `permission denied` khi gọi docker trên Linux | `sudo usermod -aG docker $USER` rồi đăng xuất đăng nhập lại |
+| Sửa code xong mà không thấy đổi | Thêm cờ build lại: `docker compose up --build` |
+| Frontend báo không tìm thấy `.next/standalone` | Docker đang dùng cache cũ: `docker compose build --no-cache frontend` |
+
+> Chạy `docker compose` **ở thư mục gốc dự án**. Chạy ở thư mục con sẽ tạo ra project Docker khác, dẫn tới `docker compose down` không tắt được container đã bật.
+
 ## Yêu cầu môi trường
 
 - Node.js 20+
