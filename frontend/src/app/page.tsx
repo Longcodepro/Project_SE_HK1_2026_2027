@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from "react";
 import ProductDetailModal, { CartItemPayload } from "../components/ProductDetailModal";
 import { useCartStore } from "../store/useCartStore";
+import { useAuthStore } from "../store/useAuthStore";
 import CartDrawer from "../components/CartDrawer";
+import AuthModal from "../components/AuthModal";
+import PaymentModal from "../components/PaymentModal";
+import OrderHistoryModal from "../components/OrderHistoryModal";
 
 // 1. Khai báo kiểu theo đúng API Contract (docs/API-CONTRACT.md)
 interface Product {
@@ -118,7 +122,10 @@ export default function MenuPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const { openCart, addItem, getTotalCount } = useCartStore();
+  const { user, logout, openAuthModal, openHistoryModal } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; total: number } | null>(null);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -200,26 +207,90 @@ export default function MenuPage() {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowLogin((open) => !open)}
-              className="grid size-10 place-items-center rounded-full bg-[#E5D2BC] text-[#4E2A12] ring-1 border border-amber-900/15 transition hover:bg-[#D8C1A6]"
-              aria-label="Tài khoản người dùng"
-            >
-              <UserIcon />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowLogin((open) => !open)}
+                className="flex items-center gap-2 rounded-full border border-amber-900/15 bg-[#E5D2BC] px-3 py-1.5 text-xs font-bold text-[#4E2A12] ring-1 transition hover:bg-[#D8C1A6]"
+                aria-label="Tài khoản người dùng"
+              >
+                <UserIcon />
+                {mounted && user ? (
+                  <span className="hidden sm:inline font-bold">
+                    {user.email.split("@")[0]} • 🌟 {user.loyaltyPoints}đ
+                  </span>
+                ) : (
+                  <span className="hidden sm:inline">Tài khoản</span>
+                )}
+              </button>
 
-            {showLogin && (
-              <div className="absolute right-0 top-12 w-64 rounded-2xl border border-amber-900/15 bg-[#FCF8F3] p-4 shadow-xl shadow-amber-950/10">
-                <p className="font-extrabold text-[#381B0D]">Chào bạn!</p>
-                <p className="mt-1 text-sm leading-5 text-[#7A5A43]">
-                  Đăng nhập để lưu đơn và nhận ưu đãi sinh viên.
-                </p>
-                <button type="button" className="btn-primary mt-4 w-full">
-                  Đăng nhập
-                </button>
-              </div>
-            )}
+              {showLogin && (
+                <div className="absolute right-0 top-12 w-64 rounded-2xl border border-amber-900/15 bg-[#FCF8F3] p-4 shadow-xl shadow-amber-950/10 z-50">
+                  {mounted && user ? (
+                    <div>
+                      <p className="font-extrabold text-[#381B0D] truncate">{user.email}</p>
+                      <div className="mt-2 flex items-center justify-between rounded-xl bg-[#EFE4D6] px-3 py-2 text-xs font-bold text-[#5E2F13]">
+                        <span>Điểm tích lũy:</span>
+                        <span className="text-sm">🌟 {user.loyaltyPoints} điểm</span>
+                      </div>
+                      <div className="mt-3 space-y-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogin(false);
+                            openHistoryModal();
+                          }}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-900/20 bg-white py-2 text-xs font-bold text-[#4E2A12] hover:bg-[#F6EEE4]"
+                        >
+                          📜 Lịch sử đơn hàng
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            logout();
+                            setShowLogin(false);
+                            setToastMessage("Đã đăng xuất thành công");
+                            setTimeout(() => setToastMessage(null), 2500);
+                          }}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 py-2 text-xs font-bold text-red-700 hover:bg-red-100"
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="font-extrabold text-[#381B0D]">Chào bạn!</p>
+                      <p className="mt-1 text-xs leading-5 text-[#7A5A43]">
+                        Đăng nhập để đặt đơn và nhận ưu đãi điểm thưởng.
+                      </p>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogin(false);
+                            openAuthModal("login");
+                          }}
+                          className="btn-primary flex-1 text-xs py-2"
+                        >
+                          Đăng nhập
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogin(false);
+                            openAuthModal("register");
+                          }}
+                          className="flex-1 rounded-xl border border-amber-900/20 bg-white py-2 text-xs font-bold text-[#4E2A12] hover:bg-[#F6EEE4]"
+                        >
+                          Đăng ký
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </nav>
       </header>
@@ -421,8 +492,36 @@ export default function MenuPage() {
         </div>
       )}
 
-      {/* Drawer Giỏ hàng (Task 5) */}
-      <CartDrawer />
+      {/* Drawer Giỏ hàng (Task 5, 6) */}
+      <CartDrawer
+        onOrderCreated={(orderId, amount) => {
+          setPendingOrder({ id: orderId, total: amount });
+          setIsPaymentOpen(true);
+        }}
+      />
+
+      {/* Modal Thanh toán giả lập (Task 8) */}
+      <PaymentModal
+        isOpen={isPaymentOpen}
+        orderId={pendingOrder?.id || null}
+        amount={pendingOrder?.total || 0}
+        onClose={() => setIsPaymentOpen(false)}
+        onSuccess={() => {
+          setToastMessage("🎉 Đơn hàng đã được thanh toán thành công!");
+          setTimeout(() => setToastMessage(null), 3500);
+        }}
+      />
+
+      {/* Modal Đăng ký / Đăng nhập JWT (Task 7) */}
+      <AuthModal />
+
+      {/* Modal Lịch sử đơn hàng GET /orders/me (Task 9) */}
+      <OrderHistoryModal
+        onPayOrder={(orderId, amount) => {
+          setPendingOrder({ id: orderId, total: amount });
+          setIsPaymentOpen(true);
+        }}
+      />
     </div>
   );
 }

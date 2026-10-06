@@ -24,7 +24,7 @@ Cập nhật trạng thái sau mỗi task xong. Không được tự chuyển ta
 | 6 | POST /orders: nhận giỏ, validate, lưu PENDING | Nhận items, validate, trừ tồn kho, lưu DB status PENDING, trả mã đơn | Long | Sprint 2 | **Done** |
 | 7 | Đăng ký/đăng nhập JWT, bcrypt, guard route | Register/Login trả JWT, bcrypt hash, route POST /orders chặn nếu chưa login | Long | Sprint 2 | **Done** |
 | 8 | Thanh toán mock: chọn Ví/Thẻ, POST /payments | Chọn phương thức, gọi API, hiện kết quả PAID hoặc PAYMENT_FAILED, nút thử lại | Long | Sprint 3 | **Done** |
-| 9 | Màn xác nhận + GET /orders/me + docker-compose | Màn sau đặt đơn, lịch sử đơn, docker compose up chạy toàn bộ, demo end-to-end | Cả hai | Sprint 3 | To do |
+| 9 | Màn xác nhận + GET /orders/me + docker-compose | Màn sau đặt đơn, lịch sử đơn, docker compose up chạy toàn bộ, demo end-to-end | Cả hai | Sprint 3 | **Done** |
 | 10 | Order State Machine + idempotent payment + loyalty | Chặn chuyển trạng thái sai, Idempotency-Key, optimistic lock tồn kho, cộng điểm loyalty | Long | Sprint 3 (nếu còn giờ) | To do |
 
 ---
