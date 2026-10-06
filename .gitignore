@@ -43,3 +43,6 @@ docker-compose.override.yml
 
 # TypeScript incremental build
 *.tsbuildinfo
+
+# Next.js tự sinh
+next-env.d.ts
