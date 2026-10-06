@@ -51,7 +51,17 @@ Auth: `Authorization: Bearer <jwt_token>` (các route cần đăng nhập)
   "productId": "uuid",
   "size": "S | M | L",
   "qty": "number",
-  "lineTotal": "number (VND)"
+  "toppings": "string[] (mảng id topping, có thể rỗng)",
+  "lineTotal": "number (VND, đã gồm phụ thu size và topping)"
+}
+```
+
+### Topping
+```json
+{
+  "id": "top-001",
+  "name": "Trân châu đen",
+  "price": 7000
 }
 ```
 
@@ -227,13 +237,14 @@ Validation: email hợp lệ, password ≥ 6 ký tự
     {
       "productId": "prod-001",
       "size": "M",
-      "qty": 2
+      "qty": 2,
+      "toppings": ["top-001"]
     }
   ]
 }
 ```
 
-Validation: items không rỗng, qty ≥ 1, size là S/M/L
+Validation: items không rỗng, qty ≥ 1, size là S/M/L, `toppings` không bắt buộc
 
 **Response 201:**
 ```json
@@ -387,6 +398,27 @@ Lưu tại `frontend/src/data/mock-products.ts` để import trực tiếp.
   }
 ]
 ```
+
+## Quy tắc tính tiền
+
+Giá trong bảng `Product` là **giá size S**. Công thức một dòng giỏ hàng:
+
+```
+lineTotal = (price + phụ_thu_size + tổng_giá_topping) × qty
+```
+
+| Size | Phụ thu |
+|---|---|
+| S | +0 |
+| M | +5.000 |
+| L | +10.000 |
+
+Ví dụ: Cà phê sữa (35.000) size L kèm trân châu đen (7.000), số lượng 1
+→ `(35000 + 10000 + 7000) × 1 = 52000`
+
+Topping hiện có (seed sẵn trong DB): `top-001` Trân châu đen 7.000, `top-002` Thạch dừa 6.000, `top-003` Kem phô mai 10.000, `top-004` Shot espresso 12.000.
+
+**Frontend và backend phải dùng chung công thức này.** Backend luôn tính lại từ đầu, không tin giá do client gửi lên.
 
 ## Quy ước giá
 
