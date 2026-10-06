@@ -24,6 +24,16 @@ BrewLite là ứng dụng đặt cà phê không dùng tiền mặt dành cho si
 | Sprint 2 | Sáng mai | Chọn món, giỏ hàng, đặt đơn | 4, 5, 6, 7 |
 | Sprint 3 | Chiều mai | Thanh toán và bàn giao | 8, 9, 10 |
 
+## Nơi làm việc — BẮT BUỘC
+
+**Luôn sửa file trực tiếp trong thư mục gốc dự án.**
+
+- KHÔNG tạo git worktree, KHÔNG dùng `.claude/worktrees/`, KHÔNG tạo nhánh tên `claude/*`
+- Làm task nào thì checkout nhánh theo quy ước `<tên-người>/task-N-mo-ta-ngan` ngay tại thư mục gốc rồi sửa tại chỗ
+- Mọi lệnh `docker compose` cũng chạy ở thư mục gốc
+
+**Lý do:** code nằm một nơi còn người dùng mở terminal ở nơi khác thì không chạy được, `docker compose down` không tắt đúng container, và commit rơi vào nhánh lạ.
+
 ## Trước khi làm bất kỳ task nào
 
 1. Đọc `docs/BACKLOG.md` → biết task nào đang ở trạng thái nào

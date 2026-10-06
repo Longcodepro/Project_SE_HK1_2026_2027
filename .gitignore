@@ -46,3 +46,6 @@ docker-compose.override.yml
 
 # Next.js tự sinh
 next-env.d.ts
+
+# Worktree do công cụ AI tạo — không dùng
+.claude/worktrees/
