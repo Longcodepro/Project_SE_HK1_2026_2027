@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    background-color: #F4ECE4;
+    color: #2B1810;
+    font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
+  }
+
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+
+@layer components {
+  /* Hiệu ứng khung xương tải trang */
+  .skeleton-shimmer {
+    @apply animate-pulse bg-[#E3D2BE] rounded-2xl;
+  }
+
+  /* Nút bấm thương hiệu BrewLite - tông nâu cà phê espresso ấm */
+  .btn-primary {
+    @apply rounded-xl bg-[#613214] px-4 py-2.5 text-xs font-extrabold text-[#FAF5EE] shadow-sm transition hover:bg-[#4A240C] active:scale-95 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600;
+  }
+
+  /* Thẻ món cà phê - nền kem cà phê ấm, đổ bóng nâu ấm */
+  .card-product {
+    @apply rounded-2xl border border-amber-900/15 bg-[#FCF8F3] p-3 shadow-[0_8px_24px_rgba(65,33,12,0.07)] transition duration-300 hover:border-amber-800/30;
+  }
+}
