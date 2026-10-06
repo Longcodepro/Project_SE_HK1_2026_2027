@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useCartStore } from "../store/useCartStore";
+import { useCartStore, CartItem } from "../store/useCartStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { TOPPING_OPTIONS } from "../data/product-options";
+import { getProductImage } from "../data/mock-products";
 import { apiCreateOrder } from "../services/api";
 
 interface CartDrawerProps {
-  onOrderCreated?: (orderId: string, amount: number) => void;
+  onOrderCreated?: (orderId: string, amount: number, orderedItems: CartItem[]) => void;
 }
 
 export default function CartDrawer({ onOrderCreated }: CartDrawerProps) {
@@ -65,12 +66,13 @@ export default function CartDrawer({ onOrderCreated }: CartDrawerProps) {
         toppings: item.toppings,
       }));
 
+      const orderedItems = [...items];
       const createdOrder = await apiCreateOrder(token, orderPayload);
 
       // Đóng drawer giỏ hàng và mở modal thanh toán
       closeCart();
       if (onOrderCreated) {
-        onOrderCreated(createdOrder.id, createdOrder.total);
+        onOrderCreated(createdOrder.id, createdOrder.total, orderedItems);
       }
     } catch (err: any) {
       setErrorMessage(err.message || "Không thể tạo đơn hàng. Vui lòng thử lại!");
@@ -174,17 +176,11 @@ export default function CartDrawer({ onOrderCreated }: CartDrawerProps) {
                 >
                   {/* Ảnh sản phẩm */}
                   <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-[#E8DACB]">
-                    {item.product.imageUrl ? (
-                      <img
-                        src={item.product.imageUrl}
-                        alt={item.product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-2xl">
-                        ☕
-                      </div>
-                    )}
+                    <img
+                      src={item.product.imageUrl || getProductImage(item.product)}
+                      alt={item.product.name}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
 
                   {/* Thông tin chi tiết */}

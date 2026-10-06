@@ -60,7 +60,7 @@ export class PaymentsService {
 
       // Thanh toán thành công thì cộng điểm loyalty: 10000 đồng được 1 điểm
       if (success) {
-        await tx.user.update({
+        await tx.user.updateMany({
           where: { id: userId },
           data: { loyaltyPoints: { increment: Math.floor(order.total / 10000) } },
         });

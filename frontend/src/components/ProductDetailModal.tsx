@@ -8,6 +8,7 @@ import {
   calculateLineTotal,
   calculateUnitPrice,
 } from "../data/product-options";
+import { getProductImage } from "../data/mock-products";
 import { useAuthStore } from "../store/useAuthStore";
 
 export interface Product {
@@ -111,15 +112,11 @@ export default function ProductDetailModal({
 
         {/* Header ảnh và thông tin món */}
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#E8DACB]">
-          {product.imageUrl ? (
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-6xl">☕</div>
-          )}
+          <img
+            src={product.imageUrl || getProductImage(product)}
+            alt={product.name}
+            className="h-full w-full object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute bottom-3 left-4 right-4 text-white">
             <span
