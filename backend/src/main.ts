@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 function loadEnv() {
@@ -31,7 +32,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.enableCors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' });
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('BrewLite API')
+    .setDescription('API đặt cà phê không dùng tiền mặt cho sinh viên')
+    .setVersion('0.1.0')
+    .addBearerAuth()
+    .build();
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api', app, swaggerDocument);
+
   await app.listen(3001);
   console.log('BrewLite backend chạy tại http://localhost:3001');
+  console.log('Swagger docs tại http://localhost:3001/api');
 }
 bootstrap();
