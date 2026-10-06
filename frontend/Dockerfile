@@ -7,6 +7,9 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# NEXT_PUBLIC_* bị bake vào JS bundle lúc build — phải truyền qua ARG, không qua runtime ENV
+ARG NEXT_PUBLIC_API_URL=http://localhost:3001
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN npm run build
 
 FROM node:20-alpine AS runner

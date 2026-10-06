@@ -24,6 +24,16 @@ BrewLite là ứng dụng đặt cà phê không dùng tiền mặt dành cho si
 | Sprint 2 | Sáng mai | Chọn món, giỏ hàng, đặt đơn | 4, 5, 6, 7 |
 | Sprint 3 | Chiều mai | Thanh toán và bàn giao | 8, 9, 10 |
 
+## Nơi làm việc — BẮT BUỘC
+
+**Luôn sửa file trực tiếp trong thư mục gốc dự án.**
+
+- KHÔNG tạo git worktree, KHÔNG dùng `.claude/worktrees/`, KHÔNG tạo nhánh tên `claude/*`
+- Làm task nào thì checkout nhánh theo quy ước `<tên-người>/task-N-mo-ta-ngan` ngay tại thư mục gốc rồi sửa tại chỗ
+- Mọi lệnh `docker compose` cũng chạy ở thư mục gốc
+
+**Lý do:** code nằm một nơi còn người dùng mở terminal ở nơi khác thì không chạy được, `docker compose down` không tắt đúng container, và commit rơi vào nhánh lạ.
+
 ## Trước khi làm bất kỳ task nào
 
 1. Đọc `docs/BACKLOG.md` → biết task nào đang ở trạng thái nào
@@ -79,6 +89,27 @@ feat(task-2,task-3): làm xong ...  ← gộp 2 task
 - Comment logic phức tạp: **tiếng Việt**
 - Frontend: component → PascalCase, hook → camelCase bắt đầu `use`
 - Backend: theo chuẩn NestJS (module/controller/service/dto)
+
+## File trọng điểm dùng chung — KHÔNG tự ý sửa
+
+Các file dưới đây ảnh hưởng tới cả hai người. Muốn sửa phải **DỪNG LẠI**, nêu lý do kèm diff đề xuất, chờ đồng ý rồi mới commit. Không "tiện tay" sửa khi đang làm task khác.
+
+| File | Lý do dùng chung |
+|---|---|
+| `backend/prisma/schema.prisma` | Định nghĩa bảng, đổi là đổi cả database |
+| `backend/prisma/migrations/` | Migration đã commit thì **không sửa**, chỉ tạo migration mới |
+| `backend/src/app.module.ts` | Root module, nơi đăng ký mọi sub-module |
+| `backend/src/main.ts` | Bootstrap, CORS, ValidationPipe toàn cục |
+| `docs/API-CONTRACT.md` | Hợp đồng request/response giữa FE và BE |
+| `docker-compose.yml` | Orchestration cả ba service |
+| `backend/Dockerfile`, `frontend/Dockerfile` | Cách build image |
+| `.env.example` | Danh sách biến môi trường chuẩn của nhóm |
+| `package-lock.json` (cả hai bên) | Khóa phiên bản dependency, sửa tay là vỡ `npm ci` |
+| `CLAUDE.md` | Chính file này |
+
+## Chạy dự án bằng Docker
+
+Xem mục **"Chạy nhanh"** trong [README.md](README.md). Một lệnh `docker compose up --build` là có đủ Postgres, backend và frontend.
 
 ## Definition of Done (phải đủ 6 ý mới được tick Done)
 

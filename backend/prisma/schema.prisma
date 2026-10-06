@@ -1,0 +1,18 @@
+generator client {
+  provider      = "prisma-client-js"
+  // alpine dùng musl + openssl 3 — phải khai báo để Prisma tải đúng engine
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id       String  @id
+  name     String
+  price    Int
+  imageUrl String?
+  stock    Int
+}

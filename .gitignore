@@ -43,3 +43,9 @@ docker-compose.override.yml
 
 # TypeScript incremental build
 *.tsbuildinfo
+
+# Next.js tự sinh
+next-env.d.ts
+
+# Worktree do công cụ AI tạo — không dùng
+.claude/worktrees/
