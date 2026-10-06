@@ -36,6 +36,23 @@ Xóa luôn dữ liệu database để chạy lại từ đầu:
 docker compose down -v
 ```
 
+### Khi đang code frontend (có hot reload)
+
+Chạy full Docker thì mỗi lần sửa code phải `--build` lại, rất chậm. Lúc code frontend nên để Docker lo Postgres và backend, còn Next.js chạy trực tiếp:
+
+```bash
+docker compose up -d postgres backend
+cd frontend && npm install && npm run dev
+```
+
+Frontend ở http://localhost:3000 có hot reload, gọi API tới `http://localhost:3001` như bình thường. Cách này cần cài Node 20 trên máy.
+
+Xong việc thì tắt phần Docker:
+
+```bash
+docker compose down
+```
+
 ### Lỗi hay gặp
 
 | Lỗi | Cách xử lý |
