@@ -10,9 +10,88 @@ datasource db {
 }
 
 model Product {
-  id       String  @id
+  id       String      @id
   name     String
   price    Int
   imageUrl String?
   stock    Int
+  items    OrderItem[]
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  loyaltyPoints Int      @default(0)
+  createdAt     DateTime @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PREPARING
+  READY
+  COMPLETED
+  PAYMENT_FAILED
+  CANCELLED
+}
+
+enum Size {
+  S
+  M
+  L
+}
+
+model Topping {
+  id    String @id
+  name  String
+  price Int
+}
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String
+  status    OrderStatus @default(PENDING)
+  total     Int
+  createdAt DateTime    @default(now())
+  items     OrderItem[]
+  payments  Payment[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  size      Size
+  qty       Int
+  // Lưu id các topping đã chọn, giá topping đã cộng sẵn vào lineTotal
+  toppings  String[] @default([])
+  lineTotal Int
+}
+
+enum PaymentMethod {
+  WALLET
+  CARD
+}
+
+enum PaymentStatus {
+  PAID
+  PAYMENT_FAILED
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Chặn thanh toán trùng khi client gửi lại cùng một request
+  idempotencyKey String @unique
+
+  amount    Int
+  method    PaymentMethod
+  status    PaymentStatus
+  createdAt DateTime      @default(now())
 }

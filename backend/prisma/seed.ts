@@ -17,7 +17,22 @@ async function main() {
       create: product,
     });
   }
-  console.log('Seed xong: 4 sản phẩm đã được thêm vào database');
+  const toppings = [
+    { id: 'top-001', name: 'Trân châu đen', price: 7000 },
+    { id: 'top-002', name: 'Thạch dừa', price: 6000 },
+    { id: 'top-003', name: 'Kem phô mai', price: 10000 },
+    { id: 'top-004', name: 'Shot espresso', price: 12000 },
+  ];
+
+  for (const topping of toppings) {
+    await prisma.topping.upsert({
+      where: { id: topping.id },
+      update: topping,
+      create: topping,
+    });
+  }
+
+  console.log('Seed xong: 4 sản phẩm và 4 topping đã được thêm vào database');
 }
 
 main()
