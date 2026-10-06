@@ -8,6 +8,7 @@ import {
   calculateLineTotal,
   calculateUnitPrice,
 } from "../data/product-options";
+import { useAuthStore } from "../store/useAuthStore";
 
 export interface Product {
   id: string;
@@ -39,6 +40,7 @@ export default function ProductDetailModal({
   onClose,
   onAddToCart,
 }: ProductDetailModalProps) {
+  const { user } = useAuthStore();
   const [selectedSize, setSelectedSize] = useState<ProductSize>("S");
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
   const [quantity, setQuantity] = useState(1);
@@ -52,7 +54,7 @@ export default function ProductDetailModal({
     }
   }, [product]);
 
-  if (!isOpen || !product) return null;
+  if (!isOpen || !product || !user) return null;
 
   const soldOut = product.stock <= 0;
   const maxQty = Math.max(1, product.stock);

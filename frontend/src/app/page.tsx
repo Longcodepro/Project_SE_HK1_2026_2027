@@ -132,8 +132,10 @@ export default function MenuPage() {
   }, []);
 
   const cartCount = mounted ? getTotalCount() : 0;
+  const isLoggedIn = mounted && !!user;
 
   const handleOpenDetail = (product: Product) => {
+    if (!isLoggedIn) return;
     setSelectedProduct(product);
     setIsModalOpen(true);
   };
@@ -394,6 +396,25 @@ export default function MenuPage() {
             )}
           </div>
 
+          {/* Thông báo gợi ý đăng nhập để mở khóa tùy chọn món khi chưa đăng nhập */}
+          {mounted && !isLoggedIn && (
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-900/15 bg-[#EFE4D6]/80 p-4 text-xs sm:text-sm text-[#4A250E] shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <span className="text-lg">🔒</span>
+                <span>
+                  Bạn đang ở chế độ xem thực đơn. <strong>Đăng nhập</strong> để mở khóa tùy chọn size, topping và đặt món!
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="shrink-0 w-fit rounded-xl bg-[#5E2F13] px-3.5 py-1.5 font-bold text-[#FAF5EE] transition hover:bg-[#47220B]"
+              >
+                Đăng nhập ngay
+              </button>
+            </div>
+          )}
+
           {/* Lưới sản phẩm (Grid) */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {/* 1. Trạng thái Loading Skeleton */}
@@ -461,11 +482,25 @@ export default function MenuPage() {
 
                         <button
                           type="button"
-                          disabled={soldOut}
-                          onClick={() => handleOpenDetail(product)}
-                          className="btn-primary"
+                          disabled={soldOut || !isLoggedIn}
+                          onClick={() => {
+                            if (!isLoggedIn) return;
+                            handleOpenDetail(product);
+                          }}
+                          className={`btn-primary ${
+                            !isLoggedIn && !soldOut
+                              ? "!bg-[#DECBB5] !text-[#7A5A43] !cursor-not-allowed opacity-80 shadow-none hover:!bg-[#DECBB5] active:scale-100"
+                              : ""
+                          }`}
+                          title={
+                            soldOut
+                              ? "Món tạm thời hết hàng"
+                              : !isLoggedIn
+                              ? "Vui lòng đăng nhập để mở khóa tùy chọn món"
+                              : undefined
+                          }
                         >
-                          {soldOut ? "Hết món" : "Tùy chọn"}
+                          {soldOut ? "Hết món" : !isLoggedIn ? "Tùy chọn 🔒" : "Tùy chọn"}
                         </button>
                       </div>
                     </div>

@@ -176,6 +176,27 @@ export default function AuthModal() {
             )}
           </button>
         </form>
+
+        {/* Nút đăng nhập nhanh Demo khi chưa bật Backend */}
+        <div className="mt-4 border-t border-amber-900/10 pt-3 text-center">
+          <p className="text-[11px] text-[#7A5A43]">
+            Muốn kiểm tra giao diện nhanh? Dùng tài khoản dùng thử:
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setAuth("demo-token-jwt-" + Date.now(), {
+                id: "demo-user-001",
+                email: email || "sinhvien.demo@brewlite.vn",
+                loyaltyPoints: 30,
+              });
+              closeAuthModal();
+            }}
+            className="mt-2 w-full rounded-xl border border-amber-900/25 bg-[#EFE4D6] py-2 text-xs font-bold text-[#4E2A12] transition hover:bg-[#E5D7C6]"
+          >
+            ⚡ Dùng tài khoản Demo (Không cần mở Backend)
+          </button>
+        </div>
       </div>
     </div>
   );
