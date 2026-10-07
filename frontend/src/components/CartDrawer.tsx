@@ -1,10 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useCartStore } from "../store/useCartStore";
+import { useCartStore, CartItem } from "../store/useCartStore";
+import { useAuthStore } from "../store/useAuthStore";
 import { TOPPING_OPTIONS } from "../data/product-options";
+import { getProductImage } from "../data/mock-products";
+import { apiCreateOrder } from "../services/api";
 
-export default function CartDrawer() {
+interface CartDrawerProps {
+  onOrderCreated?: (orderId: string, amount: number, orderedItems: CartItem[]) => void;
+}
+
+export default function CartDrawer({ onOrderCreated }: CartDrawerProps) {
   const {
     items,
     isOpen,
@@ -16,8 +23,12 @@ export default function CartDrawer() {
     getTotalCount,
   } = useCartStore();
 
-  // Tránh hydration mismatch do Zustand persist đọc localStorage ở client
+  const { token, openAuthModal } = useAuthStore();
+
   const [mounted, setMounted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -29,6 +40,45 @@ export default function CartDrawer() {
 
   const getToppingName = (id: string) => {
     return TOPPING_OPTIONS.find((t) => t.id === id)?.name || id;
+  };
+
+  const handleCheckout = async () => {
+    setErrorMessage(null);
+
+    if (!token) {
+      // Nếu chưa đăng nhập, nhắc đăng nhập và mở AuthModal
+      openAuthModal("login");
+      return;
+    }
+
+    if (items.length === 0) {
+      setErrorMessage("Giỏ hàng đang trống");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Chuẩn bị payload theo đúng CreateOrderDto (Task 6)
+      const orderPayload = items.map((item) => ({
+        productId: item.product.id,
+        size: item.size,
+        qty: item.quantity,
+        toppings: item.toppings,
+      }));
+
+      const orderedItems = [...items];
+      const createdOrder = await apiCreateOrder(token, orderPayload);
+
+      // Đóng drawer giỏ hàng và mở modal thanh toán
+      closeCart();
+      if (onOrderCreated) {
+        onOrderCreated(createdOrder.id, createdOrder.total, orderedItems);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Không thể tạo đơn hàng. Vui lòng thử lại!");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -77,6 +127,27 @@ export default function CartDrawer() {
           </div>
         </div>
 
+        {/* Thông báo lỗi khi đặt hàng (ví dụ: 422 hết hàng) */}
+        {errorMessage && (
+          <div className="mx-5 mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-700">
+            ⚠️ {errorMessage}
+          </div>
+        )}
+
+        {/* Thông báo nếu chưa đăng nhập */}
+        {!token && items.length > 0 && (
+          <div className="mx-5 mt-3 flex items-center justify-between rounded-xl border border-amber-900/20 bg-[#F3E7D9] px-3.5 py-2.5 text-xs text-[#5E2F13]">
+            <span>💡 Đăng nhập để tiến hành đặt đơn và tích lũy điểm</span>
+            <button
+              type="button"
+              onClick={() => openAuthModal("login")}
+              className="font-bold underline ml-2"
+            >
+              Đăng nhập
+            </button>
+          </div>
+        )}
+
         {/* Danh sách món */}
         <div className="flex-1 overflow-y-auto p-5">
           {items.length === 0 ? (
@@ -105,17 +176,11 @@ export default function CartDrawer() {
                 >
                   {/* Ảnh sản phẩm */}
                   <div className="size-16 shrink-0 overflow-hidden rounded-xl bg-[#E8DACB]">
-                    {item.product.imageUrl ? (
-                      <img
-                        src={item.product.imageUrl}
-                        alt={item.product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-2xl">
-                        ☕
-                      </div>
-                    )}
+                    <img
+                      src={item.product.imageUrl || getProductImage(item.product)}
+                      alt={item.product.name}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
 
                   {/* Thông tin chi tiết */}
@@ -211,13 +276,18 @@ export default function CartDrawer() {
 
             <button
               type="button"
-              onClick={() => {
-                alert("Sẵn sàng cho Task 6: Gửi đơn hàng đến API POST /orders!");
-              }}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#5E2F13] py-3.5 text-sm font-black text-[#FAF5EE] shadow-lg transition hover:bg-[#47220B] active:scale-[0.98]"
+              disabled={submitting}
+              onClick={handleCheckout}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#5E2F13] py-3.5 text-sm font-black text-[#FAF5EE] shadow-lg transition hover:bg-[#47220B] active:scale-[0.98] disabled:opacity-50"
             >
-              <span>Tiến hành đặt đơn</span>
-              <span>• {totalAmount.toLocaleString("vi-VN")} đ</span>
+              {submitting ? (
+                <span>Đang gửi đơn hàng...</span>
+              ) : (
+                <>
+                  <span>Tiến hành đặt đơn</span>
+                  <span>• {totalAmount.toLocaleString("vi-VN")} đ</span>
+                </>
+              )}
             </button>
           </div>
         )}

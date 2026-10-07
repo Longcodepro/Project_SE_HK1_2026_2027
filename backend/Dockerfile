@@ -20,5 +20,4 @@ COPY --from=builder /app/prisma ./prisma
 COPY package*.json tsconfig.json ./
 EXPOSE 3001
 # Chạy migration rồi seed dữ liệu mẫu trước khi start server
-# dist/src/main vì prisma/seed.ts nằm ngoài src/ nên tsc giữ cấu trúc thư mục
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/src/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/main.js"]

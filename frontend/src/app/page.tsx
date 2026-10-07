@@ -2,8 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import ProductDetailModal, { CartItemPayload } from "../components/ProductDetailModal";
-import { useCartStore } from "../store/useCartStore";
+import { useCartStore, CartItem } from "../store/useCartStore";
+import { useAuthStore } from "../store/useAuthStore";
 import CartDrawer from "../components/CartDrawer";
+import AuthModal from "../components/AuthModal";
+import PaymentModal from "../components/PaymentModal";
+import OrderHistoryModal from "../components/OrderHistoryModal";
+import { getProductImage } from "../data/mock-products";
 
 // 1. Khai báo kiểu theo đúng API Contract (docs/API-CONTRACT.md)
 interface Product {
@@ -41,7 +46,7 @@ const INITIAL_PRODUCTS: Product[] = [
     id: "prod-004",
     name: "Trà đào",
     price: 39000,
-    stock: 0, // Minh họa hết món
+    stock: 40,
     imageUrl: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=800&q=85",
   },
 ];
@@ -118,15 +123,20 @@ export default function MenuPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const { openCart, addItem, getTotalCount } = useCartStore();
+  const { user, logout, openAuthModal, openHistoryModal } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; total: number } | null>(null);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const cartCount = mounted ? getTotalCount() : 0;
+  const isLoggedIn = mounted && !!user;
 
   const handleOpenDetail = (product: Product) => {
+    if (!isLoggedIn) return;
     setSelectedProduct(product);
     setIsModalOpen(true);
   };
@@ -139,26 +149,93 @@ export default function MenuPage() {
     }, 3000);
   };
 
+  // Giảm tồn kho ngay lập tức cho các món vừa được đặt mua
+  const deductStock = (orderedItems: CartItem[]) => {
+    setProducts((prev) => {
+      const updated = prev.map((p) => {
+        const qtyToDeduct = orderedItems
+          .filter((item) => item.product.id === p.id)
+          .reduce((sum, item) => sum + item.quantity, 0);
+
+        if (qtyToDeduct > 0) {
+          return {
+            ...p,
+            stock: Math.max(0, p.stock - qtyToDeduct),
+          };
+        }
+        return p;
+      });
+
+      // Lưu trữ trạng thái tồn kho demo vào localStorage
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("brewlite-demo-stock", JSON.stringify(updated));
+        } catch {}
+      }
+      return updated;
+    });
+
+    // Cập nhật selectedProduct nếu modal chi tiết sản phẩm đang mở cho món này
+    setSelectedProduct((prev) => {
+      if (!prev) return null;
+      const qtyToDeduct = orderedItems
+        .filter((item) => item.product.id === prev.id)
+        .reduce((sum, item) => sum + item.quantity, 0);
+      if (qtyToDeduct > 0) {
+        return {
+          ...prev,
+          stock: Math.max(0, prev.stock - qtyToDeduct),
+        };
+      }
+      return prev;
+    });
+  };
+
   // Fetch dữ liệu: Thử gọi API backend, nếu backend chưa bật thì dùng dữ liệu mẫu
   const fetchMenu = async () => {
     setLoading(true);
     try {
-     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
       const res = await fetch(`${apiUrl}/products`);
       if (!res.ok) throw new Error("Chưa kết nối được backend");
       const data: Product[] = await res.json();
-      setProducts(data);
+      const mapped = data.map((item) => ({
+        ...item,
+        imageUrl: getProductImage(item),
+      }));
+      setProducts(mapped);
       setIsDemoMode(false);
     } catch {
       // Giả lập độ trễ 400ms để thầy cô/người chấm thấy hiệu ứng Skeleton Loading
       setTimeout(() => {
-        setProducts(INITIAL_PRODUCTS);
+        let initialList = INITIAL_PRODUCTS;
+        if (typeof window !== "undefined") {
+          try {
+            const saved = localStorage.getItem("brewlite-demo-stock");
+            if (saved) {
+              const parsed: Product[] = JSON.parse(saved);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                initialList = parsed;
+              }
+            }
+          } catch {}
+        }
+        setProducts(initialList);
         setIsDemoMode(true);
         setLoading(false);
       }, 400);
       return;
     }
     setLoading(false);
+  };
+
+  const handleResetMenu = () => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("brewlite-demo-stock");
+      } catch {}
+    }
+    fetchMenu();
   };
 
   useEffect(() => {
@@ -200,26 +277,90 @@ export default function MenuPage() {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowLogin((open) => !open)}
-              className="grid size-10 place-items-center rounded-full bg-[#E5D2BC] text-[#4E2A12] ring-1 border border-amber-900/15 transition hover:bg-[#D8C1A6]"
-              aria-label="Tài khoản người dùng"
-            >
-              <UserIcon />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowLogin((open) => !open)}
+                className="flex items-center gap-2 rounded-full border border-amber-900/15 bg-[#E5D2BC] px-3 py-1.5 text-xs font-bold text-[#4E2A12] ring-1 transition hover:bg-[#D8C1A6]"
+                aria-label="Tài khoản người dùng"
+              >
+                <UserIcon />
+                {mounted && user ? (
+                  <span className="hidden sm:inline font-bold">
+                    {user.email.split("@")[0]} • 🌟 {user.loyaltyPoints}đ
+                  </span>
+                ) : (
+                  <span className="hidden sm:inline">Tài khoản</span>
+                )}
+              </button>
 
-            {showLogin && (
-              <div className="absolute right-0 top-12 w-64 rounded-2xl border border-amber-900/15 bg-[#FCF8F3] p-4 shadow-xl shadow-amber-950/10">
-                <p className="font-extrabold text-[#381B0D]">Chào bạn!</p>
-                <p className="mt-1 text-sm leading-5 text-[#7A5A43]">
-                  Đăng nhập để lưu đơn và nhận ưu đãi sinh viên.
-                </p>
-                <button type="button" className="btn-primary mt-4 w-full">
-                  Đăng nhập
-                </button>
-              </div>
-            )}
+              {showLogin && (
+                <div className="absolute right-0 top-12 w-64 rounded-2xl border border-amber-900/15 bg-[#FCF8F3] p-4 shadow-xl shadow-amber-950/10 z-50">
+                  {mounted && user ? (
+                    <div>
+                      <p className="font-extrabold text-[#381B0D] truncate">{user.email}</p>
+                      <div className="mt-2 flex items-center justify-between rounded-xl bg-[#EFE4D6] px-3 py-2 text-xs font-bold text-[#5E2F13]">
+                        <span>Điểm tích lũy:</span>
+                        <span className="text-sm">🌟 {user.loyaltyPoints} điểm</span>
+                      </div>
+                      <div className="mt-3 space-y-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogin(false);
+                            openHistoryModal();
+                          }}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-900/20 bg-white py-2 text-xs font-bold text-[#4E2A12] hover:bg-[#F6EEE4]"
+                        >
+                          📜 Lịch sử đơn hàng
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            logout();
+                            setShowLogin(false);
+                            setToastMessage("Đã đăng xuất thành công");
+                            setTimeout(() => setToastMessage(null), 2500);
+                          }}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 py-2 text-xs font-bold text-red-700 hover:bg-red-100"
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="font-extrabold text-[#381B0D]">Chào bạn!</p>
+                      <p className="mt-1 text-xs leading-5 text-[#7A5A43]">
+                        Đăng nhập để đặt đơn và nhận ưu đãi điểm thưởng.
+                      </p>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogin(false);
+                            openAuthModal("login");
+                          }}
+                          className="btn-primary flex-1 text-xs py-2"
+                        >
+                          Đăng nhập
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogin(false);
+                            openAuthModal("register");
+                          }}
+                          className="flex-1 rounded-xl border border-amber-900/20 bg-white py-2 text-xs font-bold text-[#4E2A12] hover:bg-[#F6EEE4]"
+                        >
+                          Đăng ký
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </nav>
       </header>
@@ -323,6 +464,25 @@ export default function MenuPage() {
             )}
           </div>
 
+          {/* Thông báo gợi ý đăng nhập để mở khóa tùy chọn món khi chưa đăng nhập */}
+          {mounted && !isLoggedIn && (
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-amber-900/15 bg-[#EFE4D6]/80 p-4 text-xs sm:text-sm text-[#4A250E] shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <span className="text-lg">🔒</span>
+                <span>
+                  Bạn đang ở chế độ xem thực đơn. <strong>Đăng nhập</strong> để mở khóa tùy chọn size, topping và đặt món!
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="shrink-0 w-fit rounded-xl bg-[#5E2F13] px-3.5 py-1.5 font-bold text-[#FAF5EE] transition hover:bg-[#47220B]"
+              >
+                Đăng nhập ngay
+              </button>
+            </div>
+          )}
+
           {/* Lưới sản phẩm (Grid) */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {/* 1. Trạng thái Loading Skeleton */}
@@ -333,7 +493,7 @@ export default function MenuPage() {
 
             {/* 2. Trạng thái Empty */}
             {!loading && products.length === 0 && (
-              <EmptyState onReset={fetchMenu} />
+              <EmptyState onReset={handleResetMenu} />
             )}
 
             {/* 3. Trạng thái có dữ liệu */}
@@ -352,17 +512,11 @@ export default function MenuPage() {
                     }`}
                   >
                     <div className="relative aspect-square overflow-hidden rounded-2xl bg-[#E5D7C6]">
-                      {product.imageUrl ? (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-4xl">
-                          ☕
-                        </div>
-                      )}
+                      <img
+                        src={product.imageUrl || getProductImage(product)}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
 
                       {soldOut && (
                         <span className="absolute left-3 top-3 rounded-full bg-[#3B2012] px-3 py-1.5 text-xs font-extrabold text-[#FAF5EE]">
@@ -390,11 +544,25 @@ export default function MenuPage() {
 
                         <button
                           type="button"
-                          disabled={soldOut}
-                          onClick={() => handleOpenDetail(product)}
-                          className="btn-primary"
+                          disabled={soldOut || !isLoggedIn}
+                          onClick={() => {
+                            if (!isLoggedIn) return;
+                            handleOpenDetail(product);
+                          }}
+                          className={`btn-primary ${
+                            !isLoggedIn && !soldOut
+                              ? "!bg-[#DECBB5] !text-[#7A5A43] !cursor-not-allowed opacity-80 shadow-none hover:!bg-[#DECBB5] active:scale-100"
+                              : ""
+                          }`}
+                          title={
+                            soldOut
+                              ? "Món tạm thời hết hàng"
+                              : !isLoggedIn
+                              ? "Vui lòng đăng nhập để mở khóa tùy chọn món"
+                              : undefined
+                          }
                         >
-                          {soldOut ? "Hết món" : "Tùy chọn"}
+                          {soldOut ? "Hết món" : !isLoggedIn ? "Tùy chọn 🔒" : "Tùy chọn"}
                         </button>
                       </div>
                     </div>
@@ -421,8 +589,38 @@ export default function MenuPage() {
         </div>
       )}
 
-      {/* Drawer Giỏ hàng (Task 5) */}
-      <CartDrawer />
+      {/* Drawer Giỏ hàng (Task 5, 6) */}
+      <CartDrawer
+        onOrderCreated={(orderId, amount, orderedItems) => {
+          deductStock(orderedItems);
+          setPendingOrder({ id: orderId, total: amount });
+          setIsPaymentOpen(true);
+        }}
+      />
+
+      {/* Modal Thanh toán giả lập (Task 8) */}
+      <PaymentModal
+        isOpen={isPaymentOpen}
+        orderId={pendingOrder?.id || null}
+        amount={pendingOrder?.total || 0}
+        onClose={() => setIsPaymentOpen(false)}
+        onSuccess={() => {
+          fetchMenu();
+          setToastMessage("🎉 Đơn hàng đã được thanh toán thành công!");
+          setTimeout(() => setToastMessage(null), 3500);
+        }}
+      />
+
+      {/* Modal Đăng ký / Đăng nhập JWT (Task 7) */}
+      <AuthModal />
+
+      {/* Modal Lịch sử đơn hàng GET /orders/me (Task 9) */}
+      <OrderHistoryModal
+        onPayOrder={(orderId, amount) => {
+          setPendingOrder({ id: orderId, total: amount });
+          setIsPaymentOpen(true);
+        }}
+      />
     </div>
   );
 }
