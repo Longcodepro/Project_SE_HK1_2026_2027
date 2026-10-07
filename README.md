@@ -124,6 +124,11 @@ Xem `.env.example` để biết danh sách đầy đủ. Các biến quan trọn
 | `JWT_SECRET` | Secret key ký JWT (đổi trước khi deploy) |
 | `NEXT_PUBLIC_API_URL` | URL backend mà frontend gọi |
 
+## Test API
+
+- **Swagger**: chạy backend xong, mở http://localhost:3001/api — xem danh sách endpoint, bấm "Try it out" test trực tiếp trên trình duyệt. Route cần đăng nhập: bấm nút "Authorize" ở góc trên, dán access_token từ `/auth/login`.
+- **Postman**: import `docs/postman/BrewLite.postman_collection.json` vào Postman. Chạy lần lượt Health → Products → Auth Register → Auth Login → Orders → Payments, token và order_id tự lưu lại giữa các request.
+
 ## Tài liệu
 
 | File | Nội dung |
