@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import ProductDetailModal, { CartItemPayload } from "../components/ProductDetailModal";
 
 // 1. Khai báo kiểu theo đúng API Contract (docs/API-CONTRACT.md)
 interface Product {
@@ -112,12 +113,31 @@ export default function MenuPage() {
   const [cartCount, setCartCount] = useState(0);
   const [showLogin, setShowLogin] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItemPayload[]>([]);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleOpenDetail = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleAddToCart = (item: CartItemPayload) => {
+    setCartItems((prev) => [...prev, item]);
+    setCartCount((prev) => prev + item.quantity);
+    setToastMessage(`Đã thêm ${item.quantity}x ${item.product.name} (Size ${item.size}) vào giỏ hàng!`);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
 
   // Fetch dữ liệu: Thử gọi API backend, nếu backend chưa bật thì dùng dữ liệu mẫu
   const fetchMenu = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/products");
+     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const res = await fetch(`${apiUrl}/products`);
       if (!res.ok) throw new Error("Chưa kết nối được backend");
       const data: Product[] = await res.json();
       setProducts(data);
@@ -363,10 +383,10 @@ export default function MenuPage() {
                         <button
                           type="button"
                           disabled={soldOut}
-                          onClick={() => setCartCount((count) => count + 1)}
+                          onClick={() => handleOpenDetail(product)}
                           className="btn-primary"
                         >
-                          {soldOut ? "Hết món" : "Chọn món"}
+                          {soldOut ? "Hết món" : "Tùy chọn"}
                         </button>
                       </div>
                     </div>
@@ -376,6 +396,22 @@ export default function MenuPage() {
           </div>
         </section>
       </main>
+
+      {/* Modal Chi tiết sản phẩm — Chọn size & topping (Task 4) */}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddToCart={handleAddToCart}
+      />
+
+      {/* Toast thông báo khi thêm món vào giỏ hàng thành công */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-amber-900/20 bg-[#381B0D] px-5 py-3.5 text-sm font-bold text-[#FAF5EE] shadow-2xl">
+          <span className="text-xl">✓</span>
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
