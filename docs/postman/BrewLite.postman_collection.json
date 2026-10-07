@@ -1,0 +1,195 @@
+{
+  "info": {
+    "name": "BrewLite API",
+    "description": "Collection test API BrewLite. Import file này vào Postman rồi chạy lần lượt: Health -> Products -> Auth Register -> Auth Login -> Orders -> Payments. Login tự lưu token vào biến {{access_token}}, các request sau tự dùng lại.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    },
+    {
+      "key": "order_total",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "GET /products",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/products"
+          }
+        },
+        {
+          "name": "GET /products/:id",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/products/prod-001"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sinhvien@test.com\",\n  \"password\": \"matkhau123\"\n}"
+            },
+            "url": "{{base_url}}/auth/register"
+          }
+        },
+        {
+          "name": "POST /auth/login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.access_token) {",
+                  "  pm.collectionVariables.set('access_token', body.access_token);",
+                  "  console.log('Đã lưu access_token vào biến collection');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sinhvien@test.com\",\n  \"password\": \"matkhau123\"\n}"
+            },
+            "url": "{{base_url}}/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "POST /orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.id) {",
+                  "  pm.collectionVariables.set('order_id', body.id);",
+                  "  pm.collectionVariables.set('order_total', body.total);",
+                  "  console.log('Đã lưu order_id và order_total vào biến collection');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"prod-001\",\n      \"size\": \"M\",\n      \"qty\": 2,\n      \"toppings\": [\"top-001\"]\n    }\n  ]\n}"
+            },
+            "url": "{{base_url}}/orders"
+          }
+        },
+        {
+          "name": "GET /orders/me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "{{base_url}}/orders/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "POST /payments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{order_id}}\",\n  \"amount\": {{order_total}},\n  \"method\": \"WALLET\"\n}"
+            },
+            "url": "{{base_url}}/payments"
+          }
+        }
+      ]
+    }
+  ]
+}
