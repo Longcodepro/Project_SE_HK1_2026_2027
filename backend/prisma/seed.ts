@@ -418,7 +418,7 @@ async function main() {
   for (const u of customers) {
     const st = stats.get(u.id)!;
     const grant = (ruleId: number, count: number, tag: string) => {
-      for (let k = 1; k <= Math.min(count, 3); k++) {
+      for (let k = 1; k <= count; k++) {
         const grantedAt = new Date(now.getTime() - int(0, 40) * DAY);
         const free = ruleId === 1;
         const pid = addPromo({
