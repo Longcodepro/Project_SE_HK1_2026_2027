@@ -11,6 +11,7 @@ export interface Check {
   isArray?: boolean;
   min?: number; // giá trị số phải >= min (hoặc độ dài mảng nếu là mảng)
   matches?: string; // regex áp lên giá trị dạng chuỗi
+  sameAs?: string; // phải bằng biến đã lưu ở case trước (so sánh dạng chuỗi)
 }
 
 // Sinh giá trị mới ngay trước khi gọi, để chạy lại nhiều lần không bị trùng dữ liệu
@@ -61,7 +62,7 @@ export function generate(kind: Gen): string {
   return new Date(Date.now() + days * 86400000).toISOString();
 }
 
-export function checkValue(value: unknown, c: Check): string | null {
+export function checkValue(value: unknown, c: Check, vars: Record<string, unknown> = {}): string | null {
   const label = c.path || '(body)';
   if (c.exists !== undefined && (value !== undefined && value !== null) !== c.exists) return `${label}: ${c.exists ? 'phải có' : 'không được có'}`;
   if (c.isArray !== undefined && Array.isArray(value) !== c.isArray) return `${label}: ${c.isArray ? 'phải là mảng' : 'không được là mảng'}`;
@@ -71,5 +72,6 @@ export function checkValue(value: unknown, c: Check): string | null {
     if (!(n >= c.min)) return `${label}: mong >= ${c.min}, nhận ${n}`;
   }
   if (c.matches !== undefined && !new RegExp(c.matches).test(String(value))) return `${label}: "${value}" không khớp /${c.matches}/`;
+  if (c.sameAs !== undefined && String(value) !== String(vars[c.sameAs])) return `${label}: mong bằng ${c.sameAs} (${vars[c.sameAs]}), nhận ${value}`;
   return null;
 }

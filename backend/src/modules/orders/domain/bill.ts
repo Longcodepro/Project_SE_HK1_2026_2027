@@ -72,3 +72,25 @@ export function buildBill(order: OrderDetail): BillView | null {
     isCancelled: order.status === 'CANCELLED',
   };
 }
+
+const money = (n: number) => `${n.toLocaleString('vi-VN')}đ`;
+
+// Hóa đơn dạng văn bản, dùng làm nội dung email khi thanh toán thành công
+export function renderBillText(b: BillView): string {
+  const lines = b.lines.map((l) => {
+    const extra = [l.optionsText, l.toppingsText && `Topping: ${l.toppingsText}`, l.note && `Ghi chú: ${l.note}`].filter(Boolean).join(' | ');
+    return `${l.quantity} x ${l.productName} (${l.sizeLabel})  ${money(l.lineTotal)}\n    ${extra}`;
+  });
+  return [
+    `HÓA ĐƠN ${b.orderCode}`,
+    `Khách: ${b.customerName} (${b.phoneMasked})`,
+    `Thanh toán: ${b.paymentMethod}${b.transactionCode ? ` · mã giao dịch ${b.transactionCode}` : ''}`,
+    '',
+    ...lines,
+    '',
+    `Tạm tính: ${money(b.subtotal)}`,
+    b.discountAmount > 0 ? `Giảm giá${b.promotionCode ? ` (${b.promotionCode})` : ''}: -${money(b.discountAmount)}` : '',
+    `Tổng cộng: ${money(b.totalAmount)}`,
+    `Điểm tích lũy: +${b.pointsEarned}`,
+  ].filter((x) => x !== '').join('\n');
+}

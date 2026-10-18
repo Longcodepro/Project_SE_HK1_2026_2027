@@ -44,7 +44,7 @@ async function runCase(c: Case, vars: Vars, base: string): Promise<string[]> {
   const errors: string[] = [];
   if (res.status !== c.status) errors.push(`HTTP ${res.status}, mong ${c.status}: ${text.slice(0, 200)}`);
   for (const k of c.expect ?? []) {
-    const e = checkValue(getPath(json, k.path), k);
+    const e = checkValue(getPath(json, k.path), k, vars);
     if (e) errors.push(e);
   }
   for (const [name, p] of Object.entries(c.save ?? {})) vars[name] = getPath(json, p);
