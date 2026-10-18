@@ -31,7 +31,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'brewlite-super-secret-key-fo
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new DomainErrorFilter());
   app.enableCors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' });
 
