@@ -15,7 +15,8 @@
     "seed:reset": "SEED_RESET=true ts-node --transpile-only prisma/seed.ts",
     "postman:build": "ts-node --transpile-only postman/build.ts",
     "postman:run": "ts-node --transpile-only postman/run.ts",
-    "check": "for f in test/*.check.ts; do ts-node --transpile-only $f || exit 1; done"
+    "check": "for f in test/*.check.ts; do ts-node --transpile-only $f || exit 1; done",
+    "test:concurrency": "ts-node --transpile-only test/concurrency.run.ts"
   },
   "prisma": {
     "seed": "ts-node --transpile-only prisma/seed.ts"

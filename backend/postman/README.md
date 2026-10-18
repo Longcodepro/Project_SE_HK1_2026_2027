@@ -31,7 +31,7 @@ Trong Postman: **Import** hai file `BrewLite.postman_collection.json` và `BrewL
 | Khách bị khóa | 0922000058 | |
 | Khách chưa xác thực OTP | 0933000001 | |
 
-OTP ở môi trường dev luôn là `123456`.
+OTP mặc định luôn là `123456` (đặt `OTP_RANDOM=true` để sinh ngẫu nhiên).
 
 ## Viết case mới
 
