@@ -7,6 +7,7 @@ import catalog from './04-catalog';
 import promotions from './05-promotions';
 import loyalty from './06-loyalty';
 import wallet from './07-wallet';
+import orders from './08-orders';
 
 // Mỗi chức năng thêm một file trong thư mục này và đăng ký ở đây (theo đúng thứ tự cần chạy)
-export const FOLDERS: Folder[] = [health, login, auth, users, catalog, promotions, loyalty, wallet];
+export const FOLDERS: Folder[] = [health, login, auth, users, catalog, promotions, loyalty, wallet, orders];
