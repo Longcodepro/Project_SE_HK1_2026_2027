@@ -5,6 +5,7 @@ export abstract class ProductRepository {
   // Menu cho khách: bỏ món khóa bán và món thuộc danh mục ẩn
   abstract listOnMenu(filter: { search?: string; categoryId?: number }): Promise<Product[]>;
   abstract findById(id: number): Promise<Product | null>;
+  abstract findManyByIds(ids: number[]): Promise<Product[]>;
   abstract listAll(page: PageRequest): Promise<Page<Product>>;
   abstract create(spec: ProductSpec): Promise<Product>;
   abstract update(id: number, spec: ProductSpec): Promise<Product>;

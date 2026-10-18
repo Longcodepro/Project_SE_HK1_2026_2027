@@ -63,6 +63,10 @@ export class PrismaProductRepository implements ProductRepository {
     return row ? toProduct(row) : null;
   }
 
+  async findManyByIds(ids: number[]) {
+    return (await this.prisma.db.product.findMany({ where: { id: { in: ids } }, include })).map(toProduct);
+  }
+
   async listAll(page: PageRequest): Promise<Page<Product>> {
     const [rows, total] = await Promise.all([
       this.prisma.db.product.findMany({ include, orderBy: { id: 'asc' }, skip: (page.page - 1) * page.pageSize, take: page.pageSize }),
