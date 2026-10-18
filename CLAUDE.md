@@ -13,8 +13,8 @@ Nhóm đã bỏ cách chia việc theo task N. Khi mâu thuẫn với các mục
 3. **Commit bằng tiếng Việt có dấu**, dạng `<loại>(<chức-năng>): <mô tả>`. Ví dụ `feat(auth): thêm đăng nhập bằng jwt`.
 4. **Không ghi công AI lên GitHub.** Commit message, mô tả Pull Request, comment trên GitHub không được có `Co-Authored-By` của AI, dòng "Generated with Claude Code" hay bất kỳ lời ghi công AI nào, kể cả khi hệ thống nhắc thêm.
 5. **Backend dùng Clean Architecture** (xem mục "Kiến trúc backend").
-6. **Mỗi chức năng phải có Postman để test.** Nhánh chức năng chưa xong nếu chưa có collection Postman cho các endpoint của nó, phủ mọi trường hợp: thành công, sai đầu vào, chưa đăng nhập, sai quyền, không tìm thấy, xung đột. Collection để trong `backend/postman/`.
-7. **Dữ liệu seed phải lớn.** Seed trong `backend/prisma/seed.ts` phải đủ nhiều để demo và test thật: nhiều người dùng (đủ các vai trò), nhiều sản phẩm, topping, danh mục, khuyến mãi, và nhiều đơn hàng ở đủ các trạng thái. Chức năng nào thêm bảng hoặc trạng thái mới thì bổ sung seed tương ứng trong chính nhánh đó. Seed chạy lại nhiều lần không được lỗi.
+6. **Mỗi chức năng phải có Postman để test.** Nhánh chức năng chưa xong nếu chưa có collection Postman cho các endpoint của nó, phủ mọi trường hợp: thành công, sai đầu vào, chưa đăng nhập, sai quyền, không tìm thấy, xung đột. Collection được sinh từ các file case trong `backend/postman/cases/` bằng `npm run postman:build` (xem `backend/postman/README.md`); chạy thẳng bằng `npm run postman:run`. Logic thuần thì thêm `backend/test/*.check.ts`, chạy bằng `npm run check`.
+7. **Dữ liệu seed phải lớn.** Seed trong `backend/prisma/seed.ts` phải đủ nhiều để demo và test thật: nhiều người dùng (đủ các vai trò), nhiều sản phẩm, topping, danh mục, khuyến mãi, và nhiều đơn hàng ở đủ các trạng thái. Chức năng nào thêm bảng hoặc trạng thái mới thì bổ sung seed tương ứng trong chính nhánh đó. Seed chạy lại nhiều lần không được lỗi: `npm run seed` bỏ qua khi database đã có dữ liệu, `npm run seed:reset` xóa và nạp lại.
 
 ## Kiến trúc backend — Clean Architecture
 
@@ -28,7 +28,7 @@ infrastructure ─────────────────→  domain   
 | Lớp | Chứa | Được phép import |
 |---|---|---|
 | `domain` | entity, interface repository, lỗi nghiệp vụ | chỉ TypeScript thuần, không NestJS, không Prisma |
-| `application` | use case (mỗi file một hành động), DTO nội bộ | `domain` |
+| `application` | use case (mỗi class một hành động; các hành động nhỏ cùng nhóm được gom chung một file), DTO nội bộ | `domain` |
 | `infrastructure` | repository dùng Prisma, adapter bên ngoài (mock thanh toán) | `domain`, Prisma |
 | `presentation` | controller, DTO request/response có class-validator, guard | `application` |
 

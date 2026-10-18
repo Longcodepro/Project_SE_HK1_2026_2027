@@ -11,16 +11,17 @@ export class AppController {
       message: 'BrewLite Backend API is running successfully!',
       status: 'ok',
       timestamp: new Date().toISOString(),
+      docs: '/api',
       endpoints: {
         health: '/health',
-        products: '/products',
-        auth: {
-          register: 'POST /auth/register',
-          login: 'POST /auth/login',
-          me: 'GET /auth/me',
-        },
-        orders: '/orders',
+        auth: '/auth/*',
+        users: '/users/me, /users/me/points',
+        menu: '/categories, /products',
+        orders: '/orders, /orders/me, /orders/:id',
         payments: '/payments',
+        promotions: '/promotions/validate, /promotions/mine',
+        wallet: '/wallet, /wallet/withdrawals',
+        admin: '/admin/* (nhân viên và quản lý)',
       },
     };
   }

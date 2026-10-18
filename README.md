@@ -11,7 +11,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Lệnh này dựng cả ba service: Postgres, backend (tự chạy migration và seed 4 sản phẩm mẫu), frontend.
+Lệnh này dựng cả ba service: Postgres, backend (tự chạy migration và nạp dữ liệu mẫu lớn nếu database còn trống), frontend.
 
 | Thành phần | URL |
 |---|---|
@@ -23,6 +23,8 @@ Kiểm tra nhanh:
 ```bash
 curl http://localhost:3001/products
 ```
+
+Tài khoản mẫu (mật khẩu chung `Brew@1234`, mã OTP luôn là `123456`): quản lý `0900000001`, nhân viên `0911000001`, khách `0922000001`.
 
 Dừng lại:
 
@@ -86,12 +88,38 @@ Mở http://localhost:3000
 ### Backend (NestJS — port 3001)
 
 ```bash
+docker compose up -d postgres      # ở thư mục gốc
 cd backend
 npm install
+npx prisma migrate deploy          # tạo bảng
+npm run seed                       # nạp dữ liệu mẫu (bỏ qua nếu database đã có dữ liệu)
 npm run start:dev
 ```
 
 Kiểm tra: `curl http://localhost:3001/health` → `{"status":"ok"}`
+
+Nạp lại dữ liệu mẫu từ đầu (xóa sạch rồi tạo lại): `npm run seed:reset`.
+
+**Dữ liệu mẫu** (`backend/prisma/seed.ts`, chạy lại ra đúng cùng dữ liệu): 68 tài khoản đủ 3 vai trò (kèm tài khoản bị khóa, chưa xác thực OTP), 7 danh mục, 39 món (có món hết bán, khóa bán, danh mục ẩn, chưa nhập số ly), 12 topping, 105 mã khuyến mãi (chung và riêng, hết hạn, hết lượt, vô hiệu hóa), 340 đơn ở đủ 7 trạng thái kèm thanh toán, hoàn tiền, ví, rút tiền, món không làm được, phản hồi và hơn 1.800 thông báo.
+
+### Kiến trúc backend
+
+Clean Architecture, mỗi chức năng một thư mục trong `backend/src/modules/` chia 4 lớp: `domain` (entity, quy tắc nghiệp vụ thuần, interface repository), `application` (use case), `infrastructure` (Prisma, cổng thanh toán và SMS giả lập), `presentation` (controller, DTO). Phụ thuộc chỉ đi từ ngoài vào trong. Chi tiết xem mục "Kiến trúc backend" trong `CLAUDE.md`.
+
+## Kiểm thử backend
+
+Cần backend và Postgres đang chạy, đã seed.
+
+```bash
+cd backend
+npm run check                # kiểm tra logic thuần (giá, trạng thái đơn, khuyến mãi, thống kê, ...)
+npm run postman:run          # chạy 700+ case gọi API thật, in kết quả từng case
+npm run postman:run -- --only=orders   # chỉ một chức năng
+npm run test:concurrency     # đặt/thanh toán/rút tiền đồng thời: không bán lố, không trừ tiền hai lần
+npm run postman:build        # sinh lại file Postman sau khi sửa case
+```
+
+Dùng Postman: import `backend/postman/BrewLite.postman_collection.json` và `BrewLite.postman_environment.json`. Hướng dẫn chi tiết và cách viết case mới ở `backend/postman/README.md`.
 
 ## Chạy bằng Docker Compose (toàn bộ stack)
 
@@ -123,18 +151,20 @@ Xem `.env.example` để biết danh sách đầy đủ. Các biến quan trọn
 | `DATABASE_URL` | Connection string đầy đủ — phải khớp 3 biến trên |
 | `JWT_SECRET` | Secret key ký JWT (đổi trước khi deploy) |
 | `NEXT_PUBLIC_API_URL` | URL backend mà frontend gọi |
+| `OTP_RANDOM` | (tùy chọn) `true` để sinh OTP ngẫu nhiên. Mặc định OTP cố định `123456` để demo |
 
 ## Test API
 
-- **Swagger**: chạy backend xong, mở http://localhost:3001/api — xem danh sách endpoint, bấm "Try it out" test trực tiếp trên trình duyệt. Route cần đăng nhập: bấm nút "Authorize" ở góc trên, dán access_token từ `/auth/login`.
-- **Postman**: import `docs/postman/BrewLite.postman_collection.json` vào Postman. Chạy lần lượt Health → Products → Auth Register → Auth Login → Orders → Payments, token và order_id tự lưu lại giữa các request.
+- **Swagger**: chạy backend xong, mở http://localhost:3001/api — xem danh sách endpoint và schema, bấm "Try it out". Route cần đăng nhập: bấm "Authorize", dán `token` từ `/auth/login`.
+- **Postman và test tự động**: xem mục "Kiểm thử backend" ở trên.
 
 ## Tài liệu
 
 | File | Nội dung |
 |---|---|
 | `CLAUDE.md` | Hướng dẫn cho AI, quy ước nhóm |
-| `docs/API-CONTRACT.md` | Hợp đồng API giữa frontend và backend |
+| `docs/API-CONTRACT.md` | Hợp đồng API giữa frontend và backend (khớp code backend) |
+| `backend/postman/README.md` | Cách dùng và viết thêm case test endpoint |
 | `docs/BACKLOG.md` | Danh sách task và trạng thái Sprint |
 | `docs/RETROSPECTIVE.md` | Ghi chú cuối Sprint |
 
