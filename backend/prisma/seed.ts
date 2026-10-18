@@ -439,7 +439,6 @@ async function main() {
     if (p.stockDate === todayDate) p.stockRemaining = Math.max(0, p.dailyQuota! - (reservedToday.get(p.id as number) ?? 0));
     else p.stockRemaining = 0;
   });
-  products.forEach((p) => { if (p.name === 'Nước ép cà rốt') { p.dailyQuota = 40; p.stockRemaining = 0; } });
 
   // ───────────── Ghi vào DB ─────────────
   const put = async <T>(label: string, rows: Rows<T>, fn: (r: Rows<T>) => Promise<unknown>) => {

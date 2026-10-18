@@ -5162,6 +5162,4854 @@
           }
         }
       ]
+    },
+    {
+      "name": "04 · Thực đơn (catalog)",
+      "description": "UC07-UC10 xem menu, UC39-UC55 quản trị danh mục, topping, sản phẩm, UC76-UC77 số ly trong ngày.",
+      "item": [
+        {
+          "name": "[200] Danh mục đang hiện",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"(body)\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"\"))).to.eql(true));",
+                  "pm.test(\"(body)\" + ' >= 6', () => { const v = get(json, \"\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(6); });",
+                  "pm.test(\"0.name\" + ' bằng ' + \"\\\"Cà phê\\\"\", () => pm.expect(get(json, \"0.name\")).to.eql(\"Cà phê\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Danh sách menu (không lộ hạn mức nội bộ)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"(body)\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"\"))).to.eql(true));",
+                  "pm.test(\"(body)\" + ' >= 30', () => { const v = get(json, \"\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(30); });",
+                  "pm.test(\"0.sizes\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"0.sizes\"))).to.eql(true));",
+                  "pm.test(\"0.sizes\" + ' >= 1', () => { const v = get(json, \"0.sizes\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"0.priceFrom\" + ' >= 1', () => { const v = get(json, \"0.priceFrom\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"0.remainingToday\" + ' có', () => pm.expect(get(json, \"0.remainingToday\") != null).to.eql(true));",
+                  "pm.test(\"0.dailyQuota\" + ' không có', () => pm.expect(get(json, \"0.dailyQuota\") != null).to.eql(false));",
+                  "pm.test(\"0.stockVersion\" + ' không có', () => pm.expect(get(json, \"0.stockVersion\") != null).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Tìm theo tên không phân biệt hoa thường",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"(body)\" + ' >= 1', () => { const v = get(json, \"\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?search=C%C3%80%20PH%C3%8A",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "CÀ PHÊ"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Tìm không thấy trả mảng rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"(body)\" + ' bằng ' + \"[]\", () => pm.expect(get(json, \"\")).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?search=khongcomonnaoten",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "khongcomonnaoten"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Lọc theo danh mục",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"0.category.id\" + ' bằng ' + \"1\", () => pm.expect(get(json, \"0.category.id\")).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?categoryId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Lọc theo danh mục đang ẩn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?categoryId=7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "7"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Lọc theo danh mục không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?categoryId=9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "9999"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] categoryId không phải số",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?categoryId=abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "abc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Từ khóa tìm kiếm quá 50 ký tự",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?search=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Chi tiết món",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"name\" + ' bằng ' + \"\\\"Cà phê sữa đá\\\"\", () => pm.expect(get(json, \"name\")).to.eql(\"Cà phê sữa đá\"));",
+                  "pm.test(\"sizes\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"sizes\"))).to.eql(true));",
+                  "pm.test(\"sizes\" + ' >= 1', () => { const v = get(json, \"sizes\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"toppings\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"toppings\"))).to.eql(true));",
+                  "pm.test(\"iceDefault\" + ' có', () => pm.expect(get(json, \"iceDefault\") != null).to.eql(true));",
+                  "pm.test(\"orderable\" + ' có', () => pm.expect(get(json, \"orderable\") != null).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "1"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Món hết bán vẫn xem được nhưng không đặt được",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status\" + ' bằng ' + \"\\\"SOLD_OUT\\\"\", () => pm.expect(get(json, \"status\")).to.eql(\"SOLD_OUT\"));",
+                  "pm.test(\"orderable\" + ' bằng ' + \"false\", () => pm.expect(get(json, \"orderable\")).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "15"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Món chưa nhập số ly hôm nay: không đặt được (BR49)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"remainingToday\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"remainingToday\")).to.eql(0));",
+                  "pm.test(\"orderable\" + ' bằng ' + \"false\", () => pm.expect(get(json, \"orderable\")).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/33",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "33"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[404] Món bị khóa bán",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/38",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "38"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[404] Món thuộc danh mục đang ẩn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/39",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "39"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[404] Món không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "999999"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[400] id không phải số",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "abc"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Quản lý xem danh mục (gồm danh mục ẩn)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"total\" + ' >= 7', () => { const v = get(json, \"total\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(7); });",
+                  "pm.test(\"items\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"items\"))).to.eql(true));",
+                  "pm.test(\"items\" + ' >= 7', () => { const v = get(json, \"items\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(7); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không xem được danh mục quản trị",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[401] Danh mục quản trị khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[201] Thêm danh mục",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst digits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');\nconst gen = {\n  phone: () => '0988' + digits(6),\n  email: () => 'test' + digits(8) + '@example.com',\n  uuid: () => 'key-' + Date.now() + '-' + digits(6),\n  code: () => 'T' + digits(8),\n};\n",
+                  "pm.collectionVariables.set(\"catName\", gen.code());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"isVisible\" + ' bằng ' + \"true\", () => pm.expect(get(json, \"isVisible\")).to.eql(true));",
+                  "pm.collectionVariables.set(\"catId\", get(json, \"id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{catName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[409] Trùng tên danh mục",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cà phê\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Tên danh mục rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"  \"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Tên danh mục quá 100 ký tự",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không thêm được danh mục",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Đổi tên danh mục",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst digits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');\nconst gen = {\n  phone: () => '0988' + digits(6),\n  email: () => 'test' + digits(8) + '@example.com',\n  uuid: () => 'key-' + Date.now() + '-' + digits(6),\n  code: () => 'T' + digits(8),\n};\n",
+                  "pm.collectionVariables.set(\"catName2\", gen.code());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{catId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{catId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{catName2}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[409] Đổi tên trùng danh mục khác",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{catId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{catId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cà phê\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Đổi tên danh mục không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "999999"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Đổi tên thành rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{catId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{catId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Ẩn danh mục",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"isVisible\" + ' bằng ' + \"false\", () => pm.expect(get(json, \"isVisible\")).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{catId}}/visibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{catId}}",
+                "visibility"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVisible\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Lọc menu theo danh mục vừa ẩn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?categoryId=%7B%7BcatId%7D%7D",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "{{catId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Hiện lại danh mục",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{catId}}/visibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{catId}}",
+                "visibility"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVisible\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Danh mục mới chưa có món: menu trả rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"(body)\" + ' bằng ' + \"[]\", () => pm.expect(get(json, \"\")).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?categoryId=%7B%7BcatId%7D%7D",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "{{catId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[404] Ẩn danh mục không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/999999/visibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "999999",
+                "visibility"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVisible\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] isVisible không phải boolean",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{catId}}/visibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{catId}}",
+                "visibility"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVisible\": \"có\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Quản lý xem topping (gồm topping đang khóa)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"total\" + ' >= 12', () => { const v = get(json, \"total\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(12); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không xem được topping quản trị",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[201] Thêm topping",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst digits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');\nconst gen = {\n  phone: () => '0988' + digits(6),\n  email: () => 'test' + digits(8) + '@example.com',\n  uuid: () => 'key-' + Date.now() + '-' + digits(6),\n  code: () => 'T' + digits(8),\n};\n",
+                  "pm.collectionVariables.set(\"topName\", gen.code());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"isAvailable\" + ' bằng ' + \"true\", () => pm.expect(get(json, \"isAvailable\")).to.eql(true));",
+                  "pm.test(\"price\" + ' bằng ' + \"5000\", () => pm.expect(get(json, \"price\")).to.eql(5000));",
+                  "pm.collectionVariables.set(\"toppingId\", get(json, \"id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{topName}}\",\n  \"price\": 5000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[409] Trùng tên topping",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Trân châu đen\",\n  \"price\": 7000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Giá topping âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Âm\",\n  \"price\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Tên topping rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"price\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Giá topping không phải số nguyên",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lẻ\",\n  \"price\": 1.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không thêm được topping",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\",\n  \"price\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Sửa giá topping",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"price\" + ' bằng ' + \"6000\", () => pm.expect(get(json, \"price\")).to.eql(6000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings/{{toppingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings",
+                "{{toppingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 6000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[409] Sửa tên trùng topping khác",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings/{{toppingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings",
+                "{{toppingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Trân châu đen\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Sửa topping không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings",
+                "999999"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Khóa bán topping",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"isAvailable\" + ' bằng ' + \"false\", () => pm.expect(get(json, \"isAvailable\")).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings/{{toppingId}}/availability",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings",
+                "{{toppingId}}",
+                "availability"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Mở bán lại topping",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings/{{toppingId}}/availability",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings",
+                "{{toppingId}}",
+                "availability"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Khóa topping không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings/999999/availability",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings",
+                "999999",
+                "availability"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] isAvailable không phải boolean",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/toppings/{{toppingId}}/availability",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "toppings",
+                "{{toppingId}}",
+                "availability"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Nhân viên xem danh sách sản phẩm quản trị (gồm món khóa)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"total\" + ' >= 39', () => { const v = get(json, \"total\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(39); });",
+                  "pm.test(\"items.0.dailyQuota\" + ' có', () => pm.expect(get(json, \"items.0.dailyQuota\") != null).to.eql(true));",
+                  "pm.test(\"items.0.toppings\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"items.0.toppings\"))).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products?pageSize=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] pageSize vượt 50",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products?pageSize=51",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "51"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[403] Khách không xem được danh sách quản trị",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[401] Danh sách quản trị khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[201] Thêm món có topping (dùng mặc định giới hạn topping)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"status\" + ' bằng ' + \"\\\"ON_SALE\\\"\", () => pm.expect(get(json, \"status\")).to.eql(\"ON_SALE\"));",
+                  "pm.test(\"sizes\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"sizes\"))).to.eql(true));",
+                  "pm.test(\"sizes\" + ' >= 2', () => { const v = get(json, \"sizes\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(2); });",
+                  "pm.test(\"toppings\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"toppings\"))).to.eql(true));",
+                  "pm.test(\"toppings\" + ' >= 3', () => { const v = get(json, \"toppings\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(3); });",
+                  "pm.test(\"maxPerTopping\" + ' bằng ' + \"1\", () => pm.expect(get(json, \"maxPerTopping\")).to.eql(1));",
+                  "pm.test(\"maxToppingTotal\" + ' bằng ' + \"3\", () => pm.expect(get(json, \"maxToppingTotal\")).to.eql(3));",
+                  "pm.test(\"allowCold\" + ' bằng ' + \"true\", () => pm.expect(get(json, \"allowCold\")).to.eql(true));",
+                  "pm.test(\"defaultTemperature\" + ' bằng ' + \"\\\"COLD\\\"\", () => pm.expect(get(json, \"defaultTemperature\")).to.eql(\"COLD\"));",
+                  "pm.collectionVariables.set(\"newProductId\", get(json, \"id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2,\n    {{toppingId}}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[201] Thêm món không topping, món nóng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"maxPerTopping\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"maxPerTopping\")).to.eql(0));",
+                  "pm.test(\"defaultTemperature\" + ' bằng ' + \"\\\"HOT\\\"\", () => pm.expect(get(json, \"defaultTemperature\")).to.eql(\"HOT\"));",
+                  "pm.collectionVariables.set(\"hotProductId\", get(json, \"id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Trà nóng thử\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [],\n  \"allowHot\": true,\n  \"allowCold\": false,\n  \"defaultTemperature\": \"HOT\",\n  \"iceMin\": 0,\n  \"iceMax\": 0,\n  \"iceDefault\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Thiếu size",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Size trùng nhau",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 1000\n    },\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 2000\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Size không hợp lệ (XL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"XL\",\n      \"price\": 1000\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Giá size âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": -5\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Dung tích vượt 2000ml",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 1000,\n      \"volumeMl\": 5000\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Tên món rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Không cho phép nóng cũng không cho phép lạnh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ],\n  \"allowHot\": false,\n  \"allowCold\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Nhiệt độ mặc định không thuộc nhiệt độ được phép",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ],\n  \"allowHot\": false,\n  \"allowCold\": true,\n  \"defaultTemperature\": \"HOT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Mức đá min lớn hơn max",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ],\n  \"iceMin\": 80,\n  \"iceMax\": 20,\n  \"iceDefault\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Mức đường mặc định ngoài khoảng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ],\n  \"sugarMin\": 0,\n  \"sugarMax\": 50,\n  \"sugarDefault\": 75\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Mức đá vượt 100",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ],\n  \"iceMax\": 150\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Giới hạn mỗi loại lớn hơn tổng topping",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ],\n  \"maxPerTopping\": 5,\n  \"maxToppingTotal\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Món không topping mà giới hạn khác 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [],\n  \"maxPerTopping\": 2,\n  \"maxToppingTotal\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Danh mục không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 9999,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Topping không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    9999\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không thêm được món",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[401] Thêm món khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 1,\n  \"name\": \"Cà phê thử nghiệm\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"S\",\n      \"price\": 30000,\n      \"volumeMl\": 360\n    },\n    {\n      \"sizeCode\": \"M\",\n      \"price\": 36000,\n      \"volumeMl\": 460\n    }\n  ],\n  \"toppingIds\": [\n    1,\n    2\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Món mới hiện trên menu cho khách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"name\" + ' bằng ' + \"\\\"Cà phê thử nghiệm\\\"\", () => pm.expect(get(json, \"name\")).to.eql(\"Cà phê thử nghiệm\"));",
+                  "pm.test(\"orderable\" + ' bằng ' + \"false\", () => pm.expect(get(json, \"orderable\")).to.eql(false));",
+                  "pm.test(\"remainingToday\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"remainingToday\")).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Sửa tên và thay toàn bộ size",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"name\" + ' bằng ' + \"\\\"Cà phê đã sửa\\\"\", () => pm.expect(get(json, \"name\")).to.eql(\"Cà phê đã sửa\"));",
+                  "pm.test(\"sizes\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"sizes\"))).to.eql(true));",
+                  "pm.test(\"sizes\" + ' >= 1', () => { const v = get(json, \"sizes\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"sizes.0.sizeCode\" + ' bằng ' + \"\\\"L\\\"\", () => pm.expect(get(json, \"sizes.0.sizeCode\")).to.eql(\"L\"));",
+                  "pm.test(\"toppings\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"toppings\"))).to.eql(true));",
+                  "pm.test(\"toppings\" + ' >= 3', () => { const v = get(json, \"toppings\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(3); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cà phê đã sửa\",\n  \"sizes\": [\n    {\n      \"sizeCode\": \"L\",\n      \"price\": 50000,\n      \"volumeMl\": 560\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Bỏ hết topping thì giới hạn topping về 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"maxPerTopping\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"maxPerTopping\")).to.eql(0));",
+                  "pm.test(\"toppings\" + ' bằng ' + \"[]\", () => pm.expect(get(json, \"toppings\")).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"toppingIds\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Gắn lại topping với giới hạn mới",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"maxToppingTotal\" + ' bằng ' + \"4\", () => pm.expect(get(json, \"maxToppingTotal\")).to.eql(4));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"toppingIds\": [\n    3,\n    4\n  ],\n  \"maxPerTopping\": 2,\n  \"maxToppingTotal\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Sửa thành dữ liệu sai (đá min > max)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"iceMin\": 90,\n  \"iceMax\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Sửa món không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "999999"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Sửa sang danh mục không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": 9999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không sửa được món",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Khóa bán món",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status\" + ' bằng ' + \"\\\"LOCKED\\\"\", () => pm.expect(get(json, \"status\")).to.eql(\"LOCKED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "lock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isLocked\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Món bị khóa biến khỏi menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[409] Nhân viên không đổi được trạng thái món đang khóa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/sale-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "sale-status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SOLD_OUT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Mở lại món về ON_SALE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status\" + ' bằng ' + \"\\\"ON_SALE\\\"\", () => pm.expect(get(json, \"status\")).to.eql(\"ON_SALE\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "lock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isLocked\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] isLocked không phải boolean",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "lock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isLocked\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Khóa món không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/999999/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "999999",
+                "lock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isLocked\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không khóa được món",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "lock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isLocked\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Nhân viên đặt món hết bán",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status\" + ' bằng ' + \"\\\"SOLD_OUT\\\"\", () => pm.expect(get(json, \"status\")).to.eql(\"SOLD_OUT\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/sale-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "sale-status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SOLD_OUT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Món hết bán vẫn hiện nhưng không đặt được",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status\" + ' bằng ' + \"\\\"SOLD_OUT\\\"\", () => pm.expect(get(json, \"status\")).to.eql(\"SOLD_OUT\"));",
+                  "pm.test(\"orderable\" + ' bằng ' + \"false\", () => pm.expect(get(json, \"orderable\")).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Nhân viên đặt lại còn bán",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status\" + ' bằng ' + \"\\\"ON_SALE\\\"\", () => pm.expect(get(json, \"status\")).to.eql(\"ON_SALE\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/sale-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "sale-status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ON_SALE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Không đặt LOCKED qua sale-status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/sale-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "sale-status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"LOCKED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Trạng thái không hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/sale-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "sale-status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FOO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Đặt hết bán món không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/999999/sale-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "999999",
+                "sale-status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SOLD_OUT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[403] Khách không đổi được trạng thái bán",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/sale-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "sale-status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SOLD_OUT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[401] Đổi trạng thái bán khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/sale-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "sale-status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SOLD_OUT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Nhập số ly bán trong ngày",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"dailyQuota\" + ' bằng ' + \"7\", () => pm.expect(get(json, \"dailyQuota\")).to.eql(7));",
+                  "pm.test(\"remainingToday\" + ' bằng ' + \"7\", () => pm.expect(get(json, \"remainingToday\")).to.eql(7));",
+                  "pm.test(\"orderable\" + ' bằng ' + \"true\", () => pm.expect(get(json, \"orderable\")).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/daily-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "daily-stock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Khách thấy số ly còn lại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"remainingToday\" + ' bằng ' + \"7\", () => pm.expect(get(json, \"remainingToday\")).to.eql(7));",
+                  "pm.test(\"orderable\" + ' bằng ' + \"true\", () => pm.expect(get(json, \"orderable\")).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{newProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{newProductId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Nhập lại giữa ngày thì thay hẳn số cũ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"remainingToday\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"remainingToday\")).to.eql(0));",
+                  "pm.test(\"orderable\" + ' bằng ' + \"false\", () => pm.expect(get(json, \"orderable\")).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/daily-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "daily-stock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Số ly âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/daily-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "daily-stock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Số ly vượt 9999",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/daily-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "daily-stock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Số ly không phải số nguyên",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/daily-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "daily-stock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": \"nhiều\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Nhập số ly cho món không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/999999/daily-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "999999",
+                "daily-stock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không nhập được số ly",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/daily-stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "daily-stock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Dùng lại số ly đã nhập cho mọi món",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"updated\" + ' >= 30', () => { const v = get(json, \"updated\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(30); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/daily-stock/reuse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "daily-stock",
+                "reuse"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không dùng lại được số ly",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/daily-stock/reuse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "daily-stock",
+                "reuse"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[401] Dùng lại số ly khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/daily-stock/reuse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "daily-stock",
+                "reuse"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Dọn: khóa món thử để khỏi lẫn vào menu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{newProductId}}/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{newProductId}}",
+                "lock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isLocked\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Dọn: khóa món nóng thử",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{hotProductId}}/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{hotProductId}}",
+                "lock"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isLocked\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }
