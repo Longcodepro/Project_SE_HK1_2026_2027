@@ -1,4 +1,4 @@
-import { Case, Folder } from './dsl';
+import { Case, EXPIRED_TOKEN, Folder } from './dsl';
 
 // Sinh collection Postman v2.1. Script kiểm tra viết bằng JS của Postman, tương đương checkValue() trong dsl.ts.
 
@@ -76,10 +76,14 @@ export function buildCollection(folders: Folder[]) {
 }
 
 export function buildEnvironment() {
-  const keys = ['customerToken', 'customer2Token', 'staffToken', 'managerToken', 'expiredToken'];
+  const keys = ['customerToken', 'customer2Token', 'staffToken', 'managerToken'];
   return {
     name: 'BrewLite local',
-    values: [{ key: 'baseUrl', value: 'http://localhost:3001', enabled: true }, ...keys.map((key) => ({ key, value: '', enabled: true }))],
+    values: [
+      { key: 'baseUrl', value: 'http://localhost:3001', enabled: true },
+      { key: 'expiredToken', value: EXPIRED_TOKEN, enabled: true },
+      ...keys.map((key) => ({ key, value: '', enabled: true })),
+    ],
     _postman_variable_scope: 'environment',
   };
 }

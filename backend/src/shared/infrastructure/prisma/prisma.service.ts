@@ -7,13 +7,18 @@ const currentTx = new AsyncLocalStorage<Prisma.TransactionClient>();
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
-  async onModuleInit() {
-    await this.$connect();
+  // Repository luôn dùng `prisma.db`: trong giao dịch là client của giao dịch, ngoài giao dịch là client thường
+  declare readonly db: Prisma.TransactionClient;
+
+  constructor() {
+    super();
+    // PrismaClient trả về một Proxy; getter khai báo trên class sẽ nhận sai `this` (không có model).
+    // Định nghĩa trong constructor bằng arrow function để luôn trả về đúng Proxy.
+    Object.defineProperty(this, 'db', { get: () => currentTx.getStore() ?? this });
   }
 
-  // Repository luôn dùng `prisma.db`: trong giao dịch là client của giao dịch, ngoài giao dịch là client thường
-  get db(): Prisma.TransactionClient {
-    return currentTx.getStore() ?? this;
+  async onModuleInit() {
+    await this.$connect();
   }
 
   async inTransaction<T>(work: () => Promise<T>): Promise<T> {

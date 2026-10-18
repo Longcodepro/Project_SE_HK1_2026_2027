@@ -1,4 +1,4 @@
-import { Case, Folder, checkValue, generate, getPath } from './dsl';
+import { Case, EXPIRED_TOKEN, Folder, checkValue, generate, getPath } from './dsl';
 
 export interface RunOptions {
   base: string;
@@ -52,7 +52,7 @@ async function runCase(c: Case, vars: Vars, base: string): Promise<string[]> {
 }
 
 export async function runFolders(folders: Folder[], opts: RunOptions): Promise<boolean> {
-  const vars: Vars = { baseUrl: opts.base };
+  const vars: Vars = { baseUrl: opts.base, expiredToken: EXPIRED_TOKEN };
   const selected = folders.filter((f) => f.setup || !opts.only || f.name.toLowerCase().includes(opts.only.toLowerCase()));
   let pass = 0;
   const failed: string[] = [];

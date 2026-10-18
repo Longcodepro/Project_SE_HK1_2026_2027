@@ -22,7 +22,7 @@ export interface Case {
   // Có thể chứa {{biến}}. Biến lấy từ môi trường, từ `set` hoặc từ `save` của case trước.
   path: string;
   // Tên vai trò: dùng biến <auth>Token làm Bearer. Bỏ trống là không gửi token.
-  auth?: 'customer' | 'customer2' | 'staff' | 'manager' | 'expired';
+  auth?: string; // customer, customer2, staff, manager, expired hoặc tên biến token tự lưu bằng `save`
   headers?: Record<string, string>;
   query?: Record<string, string | number | boolean>;
   // Trong body: "{{x}}" chèn biến dạng chuỗi, "@x" chèn biến nguyên giá trị (số, boolean)
@@ -40,6 +40,9 @@ export interface Folder {
   setup?: boolean;
   cases: Case[];
 }
+
+// Token sai chữ ký, dùng để test 401 "token không hợp lệ"
+export const EXPIRED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImV4cCI6MX0.invalid';
 
 // ───── Hàm dùng chung ─────
 
