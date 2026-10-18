@@ -27807,6 +27807,2958 @@
           }
         }
       ]
+    },
+    {
+      "name": "10 · Món không làm được (item-issues)",
+      "description": "UC74: nhân viên hoàn tiền món vào ví hoặc đổi món; quản lý xem lại danh sách xử lý.",
+      "item": [
+        {
+          "name": "Tạo khách Món Thiếu: đăng ký",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst digits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');\nconst gen = {\n  phone: () => '0988' + digits(6),\n  email: () => 'test' + digits(8) + '@example.com',\n  uuid: () => 'key-' + Date.now() + '-' + digits(6),\n  code: () => 'T' + digits(8),\n};\n",
+                  "pm.collectionVariables.set(\"phone_iu\", gen.phone());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone_iu}}\",\n  \"password\": \"Matkhau123\",\n  \"fullName\": \"Khách Món Thiếu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tạo khách Món Thiếu: xác thực OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"iuToken\", get(json, \"token\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-otp"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone_iu}}\",\n  \"code\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tạo đơn G",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"orderG\", get(json, \"id\"));",
+                  "pm.collectionVariables.set(\"itemG\", get(json, \"items.0.id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{iuToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"sizeCode\": \"M\",\n      \"iceLevel\": 50,\n      \"sugarLevel\": 70,\n      \"temperature\": \"COLD\",\n      \"quantity\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Sinh khóa thanh toán đơn G",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst digits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');\nconst gen = {\n  phone: () => '0988' + digits(6),\n  email: () => 'test' + digits(8) + '@example.com',\n  uuid: () => 'key-' + Date.now() + '-' + digits(6),\n  code: () => 'T' + digits(8),\n};\n",
+                  "pm.collectionVariables.set(\"keyG\", gen.uuid());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Thanh toán đơn G",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"order.status\" + ' bằng ' + \"\\\"PAID\\\"\", () => pm.expect(get(json, \"order.status\")).to.eql(\"PAID\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{iuToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{keyG}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{orderG}},\n  \"method\": \"EWALLET\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tạo đơn H chưa thanh toán",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"orderH\", get(json, \"id\"));",
+                  "pm.collectionVariables.set(\"itemH\", get(json, \"items.0.id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{iuToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"sizeCode\": \"M\",\n      \"iceLevel\": 50,\n      \"sugarLevel\": 70,\n      \"temperature\": \"COLD\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[201] Hoàn tiền 1 trong 2 ly vào ví",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"resolution\" + ' bằng ' + \"\\\"REFUND_TO_WALLET\\\"\", () => pm.expect(get(json, \"resolution\")).to.eql(\"REFUND_TO_WALLET\"));",
+                  "pm.test(\"refundAmount\" + ' bằng ' + \"32000\", () => pm.expect(get(json, \"refundAmount\")).to.eql(32000));",
+                  "pm.test(\"refundId\" + ' có', () => pm.expect(get(json, \"refundId\") != null).to.eql(true));",
+                  "pm.test(\"remainingQuantity\" + ' bằng ' + \"1\", () => pm.expect(get(json, \"remainingQuantity\")).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"REFUND_TO_WALLET\",\n  \"note\": \"Hết sữa tươi không pha được\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Tiền được cộng vào ví của khách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"balance\" + ' bằng ' + \"32000\", () => pm.expect(get(json, \"balance\")).to.eql(32000));",
+                  "pm.test(\"transactions.0.type\" + ' bằng ' + \"\\\"REFUND_IN\\\"\", () => pm.expect(get(json, \"transactions.0.type\")).to.eql(\"REFUND_IN\"));",
+                  "pm.test(\"transactions.0.amount\" + ' bằng ' + \"32000\", () => pm.expect(get(json, \"transactions.0.amount\")).to.eql(32000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{iuToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallet"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Đơn vẫn PAID, khoản hoàn ghi lý do MISSING_ITEM",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status\" + ' bằng ' + \"\\\"PAID\\\"\", () => pm.expect(get(json, \"status\")).to.eql(\"PAID\"));",
+                  "pm.test(\"refunds.0.reason\" + ' bằng ' + \"\\\"MISSING_ITEM\\\"\", () => pm.expect(get(json, \"refunds.0.reason\")).to.eql(\"MISSING_ITEM\"));",
+                  "pm.test(\"refunds.0.amount\" + ' bằng ' + \"32000\", () => pm.expect(get(json, \"refunds.0.amount\")).to.eql(32000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Điểm tích lũy không đổi (BR51)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"points\" + ' bằng ' + \"60\", () => pm.expect(get(json, \"points\")).to.eql(60));",
+                  "pm.test(\"totalCups\" + ' bằng ' + \"2\", () => pm.expect(get(json, \"totalCups\")).to.eql(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{iuToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me/points",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "points"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[201] Ghi nhận đổi món cho ly còn lại, không hoàn tiền",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"resolution\" + ' bằng ' + \"\\\"EXCHANGE\\\"\", () => pm.expect(get(json, \"resolution\")).to.eql(\"EXCHANGE\"));",
+                  "pm.test(\"refundId\" + ' bằng ' + \"null\", () => pm.expect(get(json, \"refundId\")).to.eql(null));",
+                  "pm.test(\"refundAmount\" + ' bằng ' + \"null\", () => pm.expect(get(json, \"refundAmount\")).to.eql(null));",
+                  "pm.test(\"remainingQuantity\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"remainingQuantity\")).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Khách đổi sang trà đào cam sả\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Đổi món không làm ví thay đổi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"balance\" + ' bằng ' + \"32000\", () => pm.expect(get(json, \"balance\")).to.eql(32000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{iuToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallet"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[422] Dòng đã xử lý hết, không còn ly nào để xử lý",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Thử xử lý thêm\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Lý do dưới 5 ký tự",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"ngắn\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Thiếu lý do",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Lý do quá 200 ký tự",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Cách xử lý không hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"GIVE_FREE\",\n  \"note\": \"Tặng luôn cho khách\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Số ly không phải số nguyên",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": \"một\",\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Số ly sai kiểu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] Thiếu orderItemId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Thiếu dòng món\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[422] Số ly bằng 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 0,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Số ly bằng không\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[422] Số ly âm",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": -1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Số ly âm thử\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[422] Dòng món thuộc đơn khác",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemH}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Nhầm dòng của đơn khác\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[409] Đơn chưa thanh toán không xử lý món được",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderH}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderH}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemH}},\n  \"quantity\": 1,\n  \"resolution\": \"REFUND_TO_WALLET\",\n  \"note\": \"Đơn chưa trả tiền\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[404] Đơn không tồn tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/999999/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "999999",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Đơn không tồn tại\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[400] id đơn không phải số",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/abc/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "abc",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": 1,\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"id đơn sai kiểu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[403] Khách không xử lý món được",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{iuToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Khách tự xử lý\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[401] Xử lý món khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemG}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Chưa đăng nhập\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Lấy một đơn đã giao",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"doneOrder\", get(json, \"items.0.id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders?status=COMPLETED&pageSize=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "COMPLETED"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lấy dòng món của đơn đã giao",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"doneItem\", get(json, \"items.0.id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{doneOrder}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{doneOrder}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[409] Đơn đã giao",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{doneOrder}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{doneOrder}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{doneItem}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Đơn đã giao rồi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Lấy một đơn đã hủy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"cancelledOrder\", get(json, \"items.0.id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders?status=CANCELLED&pageSize=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CANCELLED"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lấy dòng món của đơn đã hủy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"cancelledItem\", get(json, \"items.0.id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{cancelledOrder}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{cancelledOrder}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[409] Đơn đã hủy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{cancelledOrder}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{cancelledOrder}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{cancelledItem}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Đơn đã hủy rồi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tạo khách Hoàn Một Phần: đăng ký",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst digits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');\nconst gen = {\n  phone: () => '0988' + digits(6),\n  email: () => 'test' + digits(8) + '@example.com',\n  uuid: () => 'key-' + Date.now() + '-' + digits(6),\n  code: () => 'T' + digits(8),\n};\n",
+                  "pm.collectionVariables.set(\"phone_ik\", gen.phone());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone_ik}}\",\n  \"password\": \"Matkhau123\",\n  \"fullName\": \"Khách Hoàn Một Phần\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tạo khách Hoàn Một Phần: xác thực OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"ikToken\", get(json, \"token\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-otp"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone_ik}}\",\n  \"code\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tạo đơn K",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"orderK\", get(json, \"id\"));",
+                  "pm.collectionVariables.set(\"itemK\", get(json, \"items.0.id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ikToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"sizeCode\": \"M\",\n      \"iceLevel\": 50,\n      \"sugarLevel\": 70,\n      \"temperature\": \"COLD\",\n      \"quantity\": 2\n    }\n  ],\n  \"promotionCode\": \"WELCOME10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Sinh khóa thanh toán đơn K",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst digits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');\nconst gen = {\n  phone: () => '0988' + digits(6),\n  email: () => 'test' + digits(8) + '@example.com',\n  uuid: () => 'key-' + Date.now() + '-' + digits(6),\n  code: () => 'T' + digits(8),\n};\n",
+                  "pm.collectionVariables.set(\"keyK\", gen.uuid());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Thanh toán đơn K",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"order.status\" + ' bằng ' + \"\\\"PAID\\\"\", () => pm.expect(get(json, \"order.status\")).to.eql(\"PAID\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ikToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{keyK}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{orderK}},\n  \"method\": \"EWALLET\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Đơn K đã giảm giá: khách chỉ trả 57.600đ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"totalAmount\" + ' bằng ' + \"57600\", () => pm.expect(get(json, \"totalAmount\")).to.eql(57600));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ikToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderK}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderK}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Nhân viên chuyển đơn K sang đang pha",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderK}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderK}}",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PREPARING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[201] Vẫn xử lý được khi đơn đang pha: hoàn 1 ly (32.000đ)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"refundAmount\" + ' bằng ' + \"32000\", () => pm.expect(get(json, \"refundAmount\")).to.eql(32000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderK}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderK}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemK}},\n  \"quantity\": 1,\n  \"resolution\": \"REFUND_TO_WALLET\",\n  \"note\": \"Hết ly nhựa size M\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[422] Hoàn thêm ly nữa sẽ vượt tổng đã trả (64.000đ > 57.600đ)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderK}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderK}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemK}},\n  \"quantity\": 1,\n  \"resolution\": \"REFUND_TO_WALLET\",\n  \"note\": \"Hoàn nốt ly còn lại\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[201] Nhưng ghi nhận đổi món cho ly còn lại thì được",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderK}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderK}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemK}},\n  \"quantity\": 1,\n  \"resolution\": \"EXCHANGE\",\n  \"note\": \"Đổi sang món khác\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[409] Đơn đang pha thì khách không hủy được",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ikToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderK}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderK}}",
+                "cancel"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tạo đơn L",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"orderL\", get(json, \"id\"));",
+                  "pm.collectionVariables.set(\"itemL\", get(json, \"items.0.id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ikToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"sizeCode\": \"M\",\n      \"iceLevel\": 50,\n      \"sugarLevel\": 70,\n      \"temperature\": \"COLD\",\n      \"quantity\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Sinh khóa thanh toán đơn L",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst digits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');\nconst gen = {\n  phone: () => '0988' + digits(6),\n  email: () => 'test' + digits(8) + '@example.com',\n  uuid: () => 'key-' + Date.now() + '-' + digits(6),\n  code: () => 'T' + digits(8),\n};\n",
+                  "pm.collectionVariables.set(\"keyL\", gen.uuid());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Thanh toán đơn L",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"order.status\" + ' bằng ' + \"\\\"PAID\\\"\", () => pm.expect(get(json, \"order.status\")).to.eql(\"PAID\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ikToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{keyL}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{orderL}},\n  \"method\": \"EWALLET\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Hoàn 1 ly của đơn L (32.000đ)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderL}}/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderL}}",
+                "item-issues"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderItemId\": {{itemL}},\n  \"quantity\": 1,\n  \"resolution\": \"REFUND_TO_WALLET\",\n  \"note\": \"Hết nguyên liệu một ly\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Khách hủy đơn L: chỉ hoàn phần còn lại 32.000đ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ikToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderL}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderL}}",
+                "cancel"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Không cần nữa\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[200] Đơn L có hai khoản hoàn, tổng đúng bằng số đã trả",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"refunds.0.reason\" + ' bằng ' + \"\\\"MISSING_ITEM\\\"\", () => pm.expect(get(json, \"refunds.0.reason\")).to.eql(\"MISSING_ITEM\"));",
+                  "pm.test(\"refunds.0.amount\" + ' bằng ' + \"32000\", () => pm.expect(get(json, \"refunds.0.amount\")).to.eql(32000));",
+                  "pm.test(\"refunds.1.reason\" + ' bằng ' + \"\\\"CANCEL\\\"\", () => pm.expect(get(json, \"refunds.1.reason\")).to.eql(\"CANCEL\"));",
+                  "pm.test(\"refunds.1.amount\" + ' bằng ' + \"32000\", () => pm.expect(get(json, \"refunds.1.amount\")).to.eql(32000));",
+                  "pm.test(\"refunds.2\" + ' không có', () => pm.expect(get(json, \"refunds.2\") != null).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderL}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderL}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Ví của khách đúng tổng hai khoản hoàn của đơn L (64.000đ) cộng khoản của đơn K (32.000đ)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"balance\" + ' bằng ' + \"96000\", () => pm.expect(get(json, \"balance\")).to.eql(96000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ikToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/wallet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallet"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Quản lý xem danh sách món không làm được",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"total\" + ' >= 14', () => { const v = get(json, \"total\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(14); });",
+                  "pm.test(\"items.0.orderCode\" + ' khớp regex', () => pm.expect(String(get(json, \"items.0.orderCode\"))).to.match(new RegExp(\"^BL\")));",
+                  "pm.test(\"items.0.productName\" + ' có', () => pm.expect(get(json, \"items.0.productName\") != null).to.eql(true));",
+                  "pm.test(\"items.0.handledBy.fullName\" + ' có', () => pm.expect(get(json, \"items.0.handledBy.fullName\") != null).to.eql(true));",
+                  "pm.test(\"items.0.note\" + ' có', () => pm.expect(get(json, \"items.0.note\") != null).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Lọc theo đổi món",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"items.0.resolution\" + ' bằng ' + \"\\\"EXCHANGE\\\"\", () => pm.expect(get(json, \"items.0.resolution\")).to.eql(\"EXCHANGE\"));",
+                  "pm.test(\"items.0.refundAmount\" + ' bằng ' + \"null\", () => pm.expect(get(json, \"items.0.refundAmount\")).to.eql(null));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues?resolution=EXCHANGE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": [
+                {
+                  "key": "resolution",
+                  "value": "EXCHANGE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Lọc theo hoàn tiền vào ví",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"items.0.resolution\" + ' bằng ' + \"\\\"REFUND_TO_WALLET\\\"\", () => pm.expect(get(json, \"items.0.resolution\")).to.eql(\"REFUND_TO_WALLET\"));",
+                  "pm.test(\"items.0.refundAmount\" + ' >= 1', () => { const v = get(json, \"items.0.refundAmount\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues?resolution=REFUND_TO_WALLET",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": [
+                {
+                  "key": "resolution",
+                  "value": "REFUND_TO_WALLET"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Lọc theo khoảng ngày có dữ liệu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"total\" + ' >= 14', () => { const v = get(json, \"total\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(14); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues?from=2020-01-01T00%3A00%3A00.000Z&to=2100-01-01T00%3A00%3A00.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2020-01-01T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2100-01-01T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Khoảng ngày trong tương lai không có gì",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"total\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"total\")).to.eql(0));",
+                  "pm.test(\"items\" + ' bằng ' + \"[]\", () => pm.expect(get(json, \"items\")).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues?from=2100-01-01T00%3A00%3A00.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2100-01-01T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Ngày bắt đầu sau ngày kết thúc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues?from=2026-12-01T00%3A00%3A00.000Z&to=2026-01-01T00%3A00%3A00.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-12-01T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-01T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Ngày không đúng định dạng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues?from=h%C3%B4m%20qua",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "hôm qua"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Cách xử lý lọc không hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues?resolution=GIVE_FREE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": [
+                {
+                  "key": "resolution",
+                  "value": "GIVE_FREE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không xem được danh sách xử lý (chỉ quản lý)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[401] Danh sách xử lý khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/item-issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "item-issues"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Dọn: đơn K báo xong",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"pickupK\", get(json, \"pickupCode\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderK}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderK}}",
+                "status"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Dọn: đơn K giao cho khách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderK}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderK}}",
+                "complete"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupCode\": \"{{pickupK}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Dọn: nhân viên hủy đơn G",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderG}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderG}}",
+                "cancel"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Dọn dữ liệu thử nghiệm\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }
