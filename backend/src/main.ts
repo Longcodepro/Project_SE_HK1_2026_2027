@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { DomainErrorFilter } from './shared/presentation/domain-error.filter';
 
 function loadEnv() {
   const envPath = path.resolve(__dirname, '../.env');
@@ -31,6 +32,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'brewlite-super-secret-key-fo
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalFilters(new DomainErrorFilter());
   app.enableCors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' });
 
   const swaggerConfig = new DocumentBuilder()
