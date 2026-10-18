@@ -22,7 +22,7 @@ function resolveBody(v: unknown, vars: Vars): unknown {
 
 async function runCase(c: Case, vars: Vars, base: string): Promise<string[]> {
   for (const [name, kind] of Object.entries(c.set ?? {})) vars[name] = generate(kind);
-  const qs = c.query ? '?' + new URLSearchParams(Object.entries(c.query).map(([k, v]) => [k, String(v)])).toString() : '';
+  const qs = c.query ? '?' + new URLSearchParams(Object.entries(c.query).map(([k, v]) => [k, sub(String(v), vars)])).toString() : '';
   const headers: Record<string, string> = {};
   if (c.body !== undefined) headers['Content-Type'] = 'application/json';
   if (c.auth) headers.Authorization = `Bearer ${vars[`${c.auth}Token`] ?? ''}`;
