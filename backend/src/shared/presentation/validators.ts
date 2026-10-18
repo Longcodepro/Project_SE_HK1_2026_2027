@@ -13,3 +13,6 @@ export const LowerCase = () => Transform(({ value }) => (typeof value === 'strin
 
 // Mã OTP đúng 6 chữ số
 export const IsOtpCode = () => applyDecorators(IsString(), Matches(/^\d{6}$/, { message: 'Mã xác thực gồm đúng 6 chữ số' }));
+
+// Query string luôn là chuỗi: đổi "true"/"false" thành boolean trước khi validate
+export const ToBoolean = () => Transform(({ value }) => (value === 'true' ? true : value === 'false' ? false : value));
