@@ -31,6 +31,7 @@ function testScript(c: Case): string[] {
     if (k.isArray !== undefined) lines.push(`pm.test(${label} + ' ${k.isArray ? 'là mảng' : 'không là mảng'}', () => pm.expect(Array.isArray(get(json, ${p}))).to.eql(${k.isArray}));`);
     if (k.equals !== undefined) lines.push(`pm.test(${label} + ' bằng ' + ${JSON.stringify(JSON.stringify(k.equals))}, () => pm.expect(get(json, ${p})).to.eql(${JSON.stringify(k.equals)}));`);
     if (k.min !== undefined) lines.push(`pm.test(${label} + ' >= ${k.min}', () => { const v = get(json, ${p}); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(${k.min}); });`);
+    if (k.sameAs !== undefined) lines.push(`pm.test(${label} + ' bằng biến ${k.sameAs}', () => pm.expect(String(get(json, ${p}))).to.eql(String(pm.collectionVariables.get(${JSON.stringify(k.sameAs)}))));`);
     if (k.matches !== undefined) lines.push(`pm.test(${label} + ' khớp regex', () => pm.expect(String(get(json, ${p}))).to.match(new RegExp(${JSON.stringify(k.matches)})));`);
   }
   for (const [name, p] of Object.entries(c.save ?? {})) lines.push(`pm.collectionVariables.set(${JSON.stringify(name)}, get(json, ${JSON.stringify(p)}));`);

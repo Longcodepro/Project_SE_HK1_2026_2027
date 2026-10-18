@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
@@ -12,7 +13,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule, NotificationsModule, UsersModule, AuthModule, CatalogModule, PromotionsModule, LoyaltyModule, WalletModule, OrdersModule],
+  imports: [PrismaModule, NotificationsModule, UsersModule, AuthModule, CatalogModule, PromotionsModule, LoyaltyModule, WalletModule, OrdersModule, PaymentsModule],
   controllers: [AppController],
   providers: [AppService],
 })
