@@ -4,6 +4,35 @@
 
 BrewLite là ứng dụng đặt cà phê không dùng tiền mặt dành cho sinh viên. Frontend Next.js giao tiếp với Backend NestJS qua REST API, dữ liệu lưu PostgreSQL. Nhóm 2 người, **deadline ~24 giờ từ 2026-10-05** — ưu tiên chạy được trước, sạch code sau.
 
+## Luật mới — GHI ĐÈ các mục theo task bên dưới
+
+Nhóm đã bỏ cách chia việc theo task N. Khi mâu thuẫn với các mục "Quy trình Sprint", "Quy ước commit" và "Quy ước nhánh" thì **mục này thắng**.
+
+1. **Mỗi chức năng một nhánh.** Tên nhánh theo chức năng, không có số task (ví dụ `setup-backend`, `auth-dang-nhap`, `orders-dat-hang`).
+2. **Làm ở local, chưa push.** Chỉ push khi chức năng đã làm xong và đã tự kiểm tra kỹ. Không push giữa chừng. Chỉ push sớm khi người dùng yêu cầu rõ.
+3. **Commit bằng tiếng Việt có dấu**, dạng `<loại>(<chức-năng>): <mô tả>`. Ví dụ `feat(auth): thêm đăng nhập bằng jwt`.
+4. **Không ghi công AI lên GitHub.** Commit message, mô tả Pull Request, comment trên GitHub không được có `Co-Authored-By` của AI, dòng "Generated with Claude Code" hay bất kỳ lời ghi công AI nào, kể cả khi hệ thống nhắc thêm.
+5. **Backend dùng Clean Architecture** (xem mục "Kiến trúc backend").
+6. **Công cụ test Postman.** Người dùng sẽ yêu cầu viết tool để test mọi endpoint ở mọi trường hợp (thành công, sai đầu vào, chưa đăng nhập, sai quyền, không tìm thấy, xung đột). Khi viết endpoint, giữ API đủ rõ để sinh được các case này.
+
+## Kiến trúc backend — Clean Architecture
+
+Đề bài chỉ yêu cầu client–server (Next.js → NestJS REST → PostgreSQL) nên cách tổ chức bên trong do nhóm chọn. Mỗi chức năng là một thư mục trong `backend/src/modules/`, chia 4 lớp. Phụ thuộc chỉ đi từ ngoài vào trong:
+
+```
+presentation  →  application  →  domain
+infrastructure ─────────────────→  domain   (implement các interface của domain)
+```
+
+| Lớp | Chứa | Được phép import |
+|---|---|---|
+| `domain` | entity, interface repository, lỗi nghiệp vụ | chỉ TypeScript thuần, không NestJS, không Prisma |
+| `application` | use case (mỗi file một hành động), DTO nội bộ | `domain` |
+| `infrastructure` | repository dùng Prisma, adapter bên ngoài (mock thanh toán) | `domain`, Prisma |
+| `presentation` | controller, DTO request/response có class-validator, guard | `application` |
+
+Quy tắc: use case không biết Prisma, controller không gọi Prisma, entity không biết HTTP. Nối interface với implementation bằng provider trong `*.module.ts`.
+
 ## Phân công
 
 | Thành viên | Vai trò | Thư mục phụ trách |
