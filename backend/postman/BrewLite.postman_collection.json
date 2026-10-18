@@ -30759,6 +30759,1321 @@
           }
         }
       ]
+    },
+    {
+      "name": "11 · Thống kê (stats)",
+      "description": "UC64 doanh thu, UC65 món bán chạy, UC66 topping bán chạy, UC67 số đơn theo trạng thái. Chỉ quản lý.",
+      "item": [
+        {
+          "name": "[200] Doanh thu 30 ngày gần nhất theo ngày",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"groupBy\" + ' bằng ' + \"\\\"day\\\"\", () => pm.expect(get(json, \"groupBy\")).to.eql(\"day\"));",
+                  "pm.test(\"totalRevenue\" + ' >= 1', () => { const v = get(json, \"totalRevenue\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"orderCount\" + ' >= 1', () => { const v = get(json, \"orderCount\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"averageOrderValue\" + ' >= 1', () => { const v = get(json, \"averageOrderValue\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"series\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"series\"))).to.eql(true));",
+                  "pm.test(\"series\" + ' >= 30', () => { const v = get(json, \"series\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(30); });",
+                  "pm.test(\"series.0.period\" + ' khớp regex', () => pm.expect(String(get(json, \"series.0.period\"))).to.match(new RegExp(\"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\")));",
+                  "pm.test(\"series.0.revenue\" + ' có', () => pm.expect(get(json, \"series.0.revenue\") != null).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Doanh thu theo tháng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"groupBy\" + ' bằng ' + \"\\\"month\\\"\", () => pm.expect(get(json, \"groupBy\")).to.eql(\"month\"));",
+                  "pm.test(\"series\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"series\"))).to.eql(true));",
+                  "pm.test(\"series\" + ' >= 3', () => { const v = get(json, \"series\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(3); });",
+                  "pm.test(\"series.0.period\" + ' khớp regex', () => pm.expect(String(get(json, \"series.0.period\"))).to.match(new RegExp(\"^\\\\d{4}-\\\\d{2}$\")));",
+                  "pm.test(\"totalRevenue\" + ' >= 1', () => { const v = get(json, \"totalRevenue\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue?groupBy=month&from=2026-08-01T00%3A00%3A00.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": [
+                {
+                  "key": "groupBy",
+                  "value": "month"
+                },
+                {
+                  "key": "from",
+                  "value": "2026-08-01T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Khoảng không có đơn: doanh thu 0 nhưng vẫn đủ các ngày",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"totalRevenue\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"totalRevenue\")).to.eql(0));",
+                  "pm.test(\"orderCount\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"orderCount\")).to.eql(0));",
+                  "pm.test(\"averageOrderValue\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"averageOrderValue\")).to.eql(0));",
+                  "pm.test(\"series\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"series\"))).to.eql(true));",
+                  "pm.test(\"series\" + ' >= 7', () => { const v = get(json, \"series\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(7); });",
+                  "pm.test(\"series.0.revenue\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"series.0.revenue\")).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue?from=2020-01-01T00%3A00%3A00.000Z&to=2020-01-07T23%3A59%3A59.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2020-01-01T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2020-01-07T23:59:59.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Ngày bắt đầu sau ngày kết thúc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue?from=2026-10-10T00%3A00%3A00.000Z&to=2026-10-01T00%3A00%3A00.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-10-10T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-10-01T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Nhóm theo không hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue?groupBy=year",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": [
+                {
+                  "key": "groupBy",
+                  "value": "year"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Ngày không đúng định dạng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue?from=h%C3%B4m%20qua",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "hôm qua"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Theo ngày nhưng khoảng dài hơn 366 ngày",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue?from=2020-01-01T00%3A00%3A00.000Z&to=2026-01-01T00%3A00%3A00.000Z&groupBy=day",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2020-01-01T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-01T00:00:00.000Z"
+                },
+                {
+                  "key": "groupBy",
+                  "value": "day"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không xem được /admin/stats/revenue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[403] Khách không xem được /admin/stats/revenue",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[401] /admin/stats/revenue khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/revenue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "revenue"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] 10 món bán chạy nhất mặc định",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"items\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"items\"))).to.eql(true));",
+                  "pm.test(\"items\" + ' >= 10', () => { const v = get(json, \"items\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(10); });",
+                  "pm.test(\"items.9\" + ' có', () => pm.expect(get(json, \"items.9\") != null).to.eql(true));",
+                  "pm.test(\"items.10\" + ' không có', () => pm.expect(get(json, \"items.10\") != null).to.eql(false));",
+                  "pm.test(\"items.0.name\" + ' có', () => pm.expect(get(json, \"items.0.name\") != null).to.eql(true));",
+                  "pm.test(\"items.0.totalCups\" + ' >= 1', () => { const v = get(json, \"items.0.totalCups\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"items.0.revenue\" + ' >= 1', () => { const v = get(json, \"items.0.revenue\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Giới hạn 3 món",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"items.2\" + ' có', () => pm.expect(get(json, \"items.2\") != null).to.eql(true));",
+                  "pm.test(\"items.3\" + ' không có', () => pm.expect(get(json, \"items.3\") != null).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products?limit=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Khoảng không có đơn thì danh sách rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"items\" + ' bằng ' + \"[]\", () => pm.expect(get(json, \"items\")).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products?from=2020-01-01T00%3A00%3A00.000Z&to=2020-01-07T23%3A59%3A59.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2020-01-01T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2020-01-07T23:59:59.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] limit bằng 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products?limit=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] limit vượt 50",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products?limit=51",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "51"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] limit không phải số",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products?limit=nhi%E1%BB%81u",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "nhiều"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Ngày bắt đầu sau ngày kết thúc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products?from=2026-10-10T00%3A00%3A00.000Z&to=2026-10-01T00%3A00%3A00.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-10-10T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-10-01T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không xem được /admin/stats/top-products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[403] Khách không xem được /admin/stats/top-products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[401] /admin/stats/top-products khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-products"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Topping được chọn nhiều nhất",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"items\" + ' là mảng', () => pm.expect(Array.isArray(get(json, \"items\"))).to.eql(true));",
+                  "pm.test(\"items\" + ' >= 5', () => { const v = get(json, \"items\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(5); });",
+                  "pm.test(\"items.0.name\" + ' có', () => pm.expect(get(json, \"items.0.name\") != null).to.eql(true));",
+                  "pm.test(\"items.0.totalPortions\" + ' >= 1', () => { const v = get(json, \"items.0.totalPortions\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });",
+                  "pm.test(\"items.5\" + ' không có', () => pm.expect(get(json, \"items.5\") != null).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-toppings?limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-toppings"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Khoảng không có đơn thì danh sách rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"items\" + ' bằng ' + \"[]\", () => pm.expect(get(json, \"items\")).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-toppings?from=2020-01-01T00%3A00%3A00.000Z&to=2020-01-07T23%3A59%3A59.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-toppings"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2020-01-01T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2020-01-07T23:59:59.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] limit vượt 50",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-toppings?limit=99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-toppings"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "99"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không xem được /admin/stats/top-toppings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-toppings"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[403] Khách không xem được /admin/stats/top-toppings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-toppings"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[401] /admin/stats/top-toppings khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/top-toppings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "top-toppings"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[200] Đủ 7 trạng thái, kể cả trạng thái không có đơn",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"total\" + ' >= 340', () => { const v = get(json, \"total\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(340); });",
+                  "pm.test(\"counts.PENDING\" + ' có', () => pm.expect(get(json, \"counts.PENDING\") != null).to.eql(true));",
+                  "pm.test(\"counts.PAID\" + ' có', () => pm.expect(get(json, \"counts.PAID\") != null).to.eql(true));",
+                  "pm.test(\"counts.PAYMENT_FAILED\" + ' có', () => pm.expect(get(json, \"counts.PAYMENT_FAILED\") != null).to.eql(true));",
+                  "pm.test(\"counts.PREPARING\" + ' có', () => pm.expect(get(json, \"counts.PREPARING\") != null).to.eql(true));",
+                  "pm.test(\"counts.READY\" + ' có', () => pm.expect(get(json, \"counts.READY\") != null).to.eql(true));",
+                  "pm.test(\"counts.COMPLETED\" + ' >= 200', () => { const v = get(json, \"counts.COMPLETED\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(200); });",
+                  "pm.test(\"counts.CANCELLED\" + ' >= 1', () => { const v = get(json, \"counts.CANCELLED\"); pm.expect(Array.isArray(v) ? v.length : Number(v)).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/orders-by-status?from=2020-01-01T00%3A00%3A00.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "orders-by-status"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2020-01-01T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[200] Khoảng không có đơn: cả 7 trạng thái đều bằng 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"total\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"total\")).to.eql(0));",
+                  "pm.test(\"counts.PENDING\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"counts.PENDING\")).to.eql(0));",
+                  "pm.test(\"counts.COMPLETED\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"counts.COMPLETED\")).to.eql(0));",
+                  "pm.test(\"counts.CANCELLED\" + ' bằng ' + \"0\", () => pm.expect(get(json, \"counts.CANCELLED\")).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/orders-by-status?from=2020-01-01T00%3A00%3A00.000Z&to=2020-01-07T23%3A59%3A59.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "orders-by-status"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2020-01-01T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2020-01-07T23:59:59.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[400] Ngày bắt đầu sau ngày kết thúc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{managerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/orders-by-status?from=2026-10-10T00%3A00%3A00.000Z&to=2026-10-01T00%3A00%3A00.000Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "orders-by-status"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-10-10T00:00:00.000Z"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-10-01T00:00:00.000Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[403] Nhân viên không xem được /admin/stats/orders-by-status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{staffToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/orders-by-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "orders-by-status"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[403] Khách không xem được /admin/stats/orders-by-status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/orders-by-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "orders-by-status"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "[401] /admin/stats/orders-by-status khi chưa đăng nhập",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "\nconst get = (o, p) => p === '' ? o : p.split('.').reduce((c, k) => (c == null ? undefined : c[k]), o);\nlet json; try { json = pm.response.json(); } catch (e) { json = undefined; }\n",
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats/orders-by-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats",
+                "orders-by-status"
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
     }
   ]
 }
