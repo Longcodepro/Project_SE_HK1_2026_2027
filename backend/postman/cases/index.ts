@@ -9,6 +9,7 @@ import loyalty from './06-loyalty';
 import wallet from './07-wallet';
 import orders from './08-orders';
 import payments from './09-payments';
+import itemIssues from './10-item-issues';
 
 // Mỗi chức năng thêm một file trong thư mục này và đăng ký ở đây (theo đúng thứ tự cần chạy)
-export const FOLDERS: Folder[] = [health, login, auth, users, catalog, promotions, loyalty, wallet, orders, payments];
+export const FOLDERS: Folder[] = [health, login, auth, users, catalog, promotions, loyalty, wallet, orders, payments, itemIssues];

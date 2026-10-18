@@ -49,8 +49,11 @@ export class CancelOrderUseCase {
       if (wasPaid) {
         const payment = order.payments.filter((p) => p.status === 'SUCCESS').sort((a, b) => b.id - a.id)[0];
         if (!payment) throw new ConflictError('Đơn đã thanh toán nhưng không tìm thấy giao dịch để hoàn tiền');
-        // BR16, BR43: hoàn đủ vào ví của khách
-        await this.refund.execute({ orderId: order.id, paymentId: payment.id, userId: order.userId, amount: order.totalAmount, reason: 'CANCEL', actorId: input.actorId, note: input.note });
+        // BR16, BR43: hoàn vào ví của khách phần chưa hoàn (UC74 có thể đã hoàn tiền một số món), tổng hoàn không vượt totalAmount
+        const refundable = order.totalAmount - order.refunds.reduce((sum, r) => sum + r.amount, 0);
+        if (refundable > 0) {
+          await this.refund.execute({ orderId: order.id, paymentId: payment.id, userId: order.userId, amount: refundable, reason: 'CANCEL', actorId: input.actorId, note: input.note });
+        }
         // BR51: thu hồi đúng số điểm và số ly của đơn
         await this.revokeLoyalty.execute({ userId: order.userId, points: order.pointsAwarded, cups: order.items.reduce((s, i) => s + i.quantity, 0) });
       }
