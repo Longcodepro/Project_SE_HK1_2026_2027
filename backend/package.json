@@ -12,7 +12,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "ts-node --transpile-only prisma/seed.ts",
     "seed": "ts-node --transpile-only prisma/seed.ts",
-    "seed:reset": "SEED_RESET=true ts-node --transpile-only prisma/seed.ts"
+    "seed:reset": "SEED_RESET=true ts-node --transpile-only prisma/seed.ts",
+    "postman:build": "ts-node --transpile-only postman/build.ts",
+    "postman:run": "ts-node --transpile-only postman/run.ts"
   },
   "prisma": {
     "seed": "ts-node --transpile-only prisma/seed.ts"
