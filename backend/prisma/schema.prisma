@@ -9,89 +9,559 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Product {
-  id       String      @id
-  name     String
-  price    Int
-  imageUrl String?
-  stock    Int
-  items    OrderItem[]
+// ───────────── Enum ─────────────
+
+enum Temperature {
+  HOT
+  COLD
 }
 
-model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  passwordHash  String
-  loyaltyPoints Int      @default(0)
-  createdAt     DateTime @default(now())
+enum PromotionScope {
+  PUBLIC
+  PERSONAL
 }
 
-enum OrderStatus {
-  PENDING
-  PAID
-  PREPARING
-  READY
-  COMPLETED
-  PAYMENT_FAILED
-  CANCELLED
+enum RewardKind {
+  POINTS
+  CUPS
 }
 
-enum Size {
+enum ProductStatus {
+  ON_SALE
+  SOLD_OUT
+  LOCKED
+}
+
+enum OtpPurpose {
+  REGISTER
+  RESET_PASSWORD
+}
+
+enum NotificationEvent {
+  ORDER_CREATED
+  PAYMENT_SUCCESS
+  ORDER_READY
+  ORDER_COMPLETED
+  REWARD_ISSUED
+  WITHDRAWAL_COMPLETED
+  WITHDRAWAL_REJECTED
+}
+
+enum NotificationChannel {
+  SMS
+  EMAIL
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  MANAGER
+}
+
+enum SizeCode {
   S
   M
   L
 }
 
-model Topping {
-  id    String @id
-  name  String
-  price Int
+enum OrderStatus {
+  PENDING
+  PAID
+  PAYMENT_FAILED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
 }
 
-model Order {
-  id        String      @id @default(uuid())
-  userId    String
-  status    OrderStatus @default(PENDING)
-  total     Int
-  createdAt DateTime    @default(now())
-  items     OrderItem[]
-  payments  Payment[]
-}
-
-model OrderItem {
-  id        String   @id @default(uuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  size      Size
-  qty       Int
-  // Lưu id các topping đã chọn, giá topping đã cộng sẵn vào lineTotal
-  toppings  String[] @default([])
-  lineTotal Int
+enum CancelReason {
+  CUSTOMER_CANCEL
+  STAFF_CANCEL
 }
 
 enum PaymentMethod {
-  WALLET
+  EWALLET
   CARD
+  TRANSFER
 }
 
 enum PaymentStatus {
-  PAID
-  PAYMENT_FAILED
+  SUCCESS
+  FAILED
 }
 
+enum RefundReason {
+  CANCEL
+  MISSING_ITEM
+}
+
+enum WalletTxType {
+  REFUND_IN
+  WITHDRAW_OUT
+  WITHDRAW_RETURN
+}
+
+enum WithdrawalStatus {
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+enum DestinationType {
+  EWALLET
+  CARD
+  BANK
+}
+
+enum ItemResolution {
+  REFUND_TO_WALLET
+  EXCHANGE
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+  FREE_DRINK
+}
+
+// ───────────── Người dùng ─────────────
+
+model User {
+  id              Int      @id @default(autoincrement())
+  phone           String   @unique
+  isPhoneVerified Boolean  @default(false)
+  email           String?  @unique
+  passwordHash    String
+  fullName        String
+  role            Role     @default(CUSTOMER)
+  isActive        Boolean  @default(true)
+  loyaltyPoints   Int      @default(0)
+  walletBalance   Int      @default(0)
+  totalCups       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  promotions         Promotion[]         @relation("Promotion_userId")
+  orders             Order[]             @relation("Order_userId")
+  cancelledOrders    Order[]             @relation("Order_cancelledByUserId")
+  refunds            Refund[]            @relation("Refund_createdByUserId")
+  walletTransactions WalletTransaction[] @relation("WalletTransaction_userId")
+  withdrawals        WithdrawalRequest[] @relation("WithdrawalRequest_userId")
+  handledWithdrawals WithdrawalRequest[] @relation("WithdrawalRequest_handledByUserId")
+  itemIssues         ItemIssue[]         @relation("ItemIssue_handledByUserId")
+  notifications      Notification[]      @relation("Notification_userId")
+  revokedTokens      RevokedToken[]      @relation("RevokedToken_userId")
+  promotionUsages    PromotionUsage[]    @relation("PromotionUsage_userId")
+  serviceFeedbacks   ServiceFeedback[]   @relation("ServiceFeedback_userId")
+
+  @@map("user")
+}
+
+model OtpCode {
+  id         Int        @id @default(autoincrement())
+  phone      String
+  purpose    OtpPurpose
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int        @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@index([phone, purpose])
+  @@map("otp_code")
+}
+
+model RevokedToken {
+  id        Int      @id @default(autoincrement())
+  jti       String   @unique
+  userId    Int
+  user      User     @relation("RevokedToken_userId", fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("revoked_token")
+}
+
+// ───────────── Thực đơn ─────────────
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  isVisible Boolean   @default(true)
+  products  Product[] @relation("Product_categoryId")
+
+  @@map("category")
+}
+
+model Product {
+  id                 Int           @id @default(autoincrement())
+  categoryId         Int
+  category           Category      @relation("Product_categoryId", fields: [categoryId], references: [id])
+  name               String
+  description        String?
+  imageUrl           String?
+  status             ProductStatus @default(ON_SALE)
+  allowHot           Boolean       @default(false)
+  allowCold          Boolean       @default(true)
+  defaultTemperature Temperature
+  maxPerTopping      Int
+  maxToppingTotal    Int
+  dailyQuota         Int           @default(0)
+  stockRemaining     Int           @default(0)
+  // Ngày (theo giờ Việt Nam) mà stockRemaining có hiệu lực, xem BR49
+  stockDate          DateTime?     @db.Date
+  stockVersion       Int           @default(0)
+  iceMin             Int
+  iceMax             Int
+  iceDefault         Int
+  sugarMin           Int
+  sugarMax           Int
+  sugarDefault       Int
+
+  productSizes       ProductSize[]       @relation("ProductSize_productId")
+  productToppings    ProductTopping[]    @relation("ProductTopping_productId")
+  orderItems         OrderItem[]         @relation("OrderItem_productId")
+  promotionProducts  PromotionProduct[]  @relation("PromotionProduct_productId")
+  rewardRuleProducts RewardRuleProduct[] @relation("RewardRuleProduct_productId")
+
+  @@index([categoryId])
+  @@map("product")
+}
+
+model ProductSize {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  product   Product  @relation("ProductSize_productId", fields: [productId], references: [id], onDelete: Cascade)
+  sizeCode  SizeCode
+  price     Int
+  volumeMl  Int?
+
+  @@unique([productId, sizeCode])
+  @@map("product_size")
+}
+
+model Topping {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  price       Int
+  isAvailable Boolean @default(true)
+
+  productToppings   ProductTopping[]   @relation("ProductTopping_toppingId")
+  orderItemToppings OrderItemTopping[] @relation("OrderItemTopping_toppingId")
+
+  @@map("topping")
+}
+
+model ProductTopping {
+  productId Int
+  product   Product @relation("ProductTopping_productId", fields: [productId], references: [id], onDelete: Cascade)
+  toppingId Int
+  topping   Topping @relation("ProductTopping_toppingId", fields: [toppingId], references: [id])
+
+  @@id([productId, toppingId])
+  @@map("product_topping")
+}
+
+// ───────────── Khuyến mãi và tích điểm ─────────────
+
+model Promotion {
+  id                Int            @id @default(autoincrement())
+  code              String         @unique
+  scope             PromotionScope
+  // Chỉ có với mã riêng (PERSONAL)
+  userId            Int?
+  user              User?          @relation("Promotion_userId", fields: [userId], references: [id])
+  // Quy tắc thưởng đã cấp ra mã này (mã chung thì rỗng)
+  ruleId            Int?
+  rule              RewardRule?    @relation("Promotion_ruleId", fields: [ruleId], references: [id])
+  discountType      DiscountType
+  discountValue     Int            @default(0)
+  maxDiscountAmount Int?
+  minOrderAmount    Int            @default(0)
+  // Rỗng là không giới hạn tổng lượt
+  maxTotalUses      Int?
+  maxUsesPerUser    Int            @default(1)
+  startsAt          DateTime
+  endsAt            DateTime
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+
+  orders            Order[]            @relation("Order_promotionId")
+  promotionUsages   PromotionUsage[]   @relation("PromotionUsage_promotionId")
+  promotionProducts PromotionProduct[] @relation("PromotionProduct_promotionId")
+
+  @@index([userId])
+  @@map("promotion")
+}
+
+model PromotionProduct {
+  promotionId Int
+  promotion   Promotion @relation("PromotionProduct_promotionId", fields: [promotionId], references: [id], onDelete: Cascade)
+  productId   Int
+  product     Product   @relation("PromotionProduct_productId", fields: [productId], references: [id])
+
+  @@id([promotionId, productId])
+  @@map("promotion_product")
+}
+
+model PromotionUsage {
+  id          Int       @id @default(autoincrement())
+  promotionId Int
+  promotion   Promotion @relation("PromotionUsage_promotionId", fields: [promotionId], references: [id])
+  userId      Int
+  user        User      @relation("PromotionUsage_userId", fields: [userId], references: [id])
+  orderId     Int       @unique
+  order       Order     @relation("PromotionUsage_orderId", fields: [orderId], references: [id])
+  createdAt   DateTime  @default(now())
+  // Có giá trị khi đơn bị hủy: lượt dùng được trả lại
+  releasedAt  DateTime?
+
+  @@index([promotionId])
+  @@map("promotion_usage")
+}
+
+model RewardRule {
+  id                Int          @id @default(autoincrement())
+  name              String
+  kind              RewardKind
+  threshold         Int
+  discountType      DiscountType
+  discountValue     Int          @default(0)
+  maxDiscountAmount Int?
+  minOrderAmount    Int          @default(0)
+  validDays         Int
+  isActive          Boolean      @default(true)
+
+  promotions         Promotion[]         @relation("Promotion_ruleId")
+  rewardRuleProducts RewardRuleProduct[] @relation("RewardRuleProduct_ruleId")
+
+  @@map("reward_rule")
+}
+
+model RewardRuleProduct {
+  ruleId    Int
+  rule      RewardRule @relation("RewardRuleProduct_ruleId", fields: [ruleId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product    @relation("RewardRuleProduct_productId", fields: [productId], references: [id])
+
+  @@id([ruleId, productId])
+  @@map("reward_rule_product")
+}
+
+// Bảng một dòng (id = 1): tỉ lệ đổi tiền ra điểm
+model LoyaltySetting {
+  id            Int @id
+  amountStep    Int @default(10000)
+  pointsPerStep Int @default(10)
+
+  @@map("loyalty_setting")
+}
+
+// ───────────── Đơn hàng ─────────────
+
+model Order {
+  id                Int           @id @default(autoincrement())
+  orderCode         String        @unique
+  userId            Int
+  user              User          @relation("Order_userId", fields: [userId], references: [id])
+  promotionId       Int?
+  promotion         Promotion?    @relation("Order_promotionId", fields: [promotionId], references: [id])
+  promotionCode     String?
+  status            OrderStatus   @default(PENDING)
+  subtotal          Int
+  discountAmount    Int           @default(0)
+  totalAmount       Int
+  pointsAwarded     Int           @default(0)
+  pickupCode        String?       @unique
+  cancelReason      CancelReason?
+  cancelledByUserId Int?
+  cancelledByUser   User?         @relation("Order_cancelledByUserId", fields: [cancelledByUserId], references: [id])
+  cancelNote        String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  orderItems      OrderItem[]      @relation("OrderItem_orderId")
+  payments        Payment[]        @relation("Payment_orderId")
+  refunds         Refund[]         @relation("Refund_orderId")
+  itemIssues      ItemIssue[]      @relation("ItemIssue_orderId")
+  notifications   Notification[]   @relation("Notification_orderId")
+  promotionUsage  PromotionUsage?  @relation("PromotionUsage_orderId")
+  serviceFeedback ServiceFeedback? @relation("ServiceFeedback_orderId")
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("order")
+}
+
+model OrderItem {
+  id           Int         @id @default(autoincrement())
+  orderId      Int
+  order        Order       @relation("OrderItem_orderId", fields: [orderId], references: [id])
+  productId    Int
+  product      Product     @relation("OrderItem_productId", fields: [productId], references: [id])
+  // Ảnh chụp tên, giá, size lúc đặt (BR26)
+  productName  String
+  sizeCode     SizeCode
+  sizeVolumeMl Int?
+  unitPrice    Int
+  iceLevel     Int
+  sugarLevel   Int
+  temperature  Temperature
+  note         String?
+  quantity     Int
+  lineTotal    Int
+
+  orderItemToppings OrderItemTopping[] @relation("OrderItemTopping_orderItemId")
+  itemIssues        ItemIssue[]        @relation("ItemIssue_orderItemId")
+
+  @@index([orderId])
+  @@map("order_item")
+}
+
+model OrderItemTopping {
+  id          Int       @id @default(autoincrement())
+  orderItemId Int
+  orderItem   OrderItem @relation("OrderItemTopping_orderItemId", fields: [orderItemId], references: [id])
+  toppingId   Int
+  topping     Topping   @relation("OrderItemTopping_toppingId", fields: [toppingId], references: [id])
+  toppingName String
+  price       Int
+  quantity    Int
+
+  @@map("order_item_topping")
+}
+
+model ServiceFeedback {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @unique
+  order     Order    @relation("ServiceFeedback_orderId", fields: [orderId], references: [id])
+  userId    Int
+  user      User     @relation("ServiceFeedback_userId", fields: [userId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@map("service_feedback")
+}
+
+// ───────────── Thanh toán, ví, hoàn tiền ─────────────
+
 model Payment {
-  id String @id @default(uuid())
+  id             Int           @id @default(autoincrement())
+  orderId        Int
+  order          Order         @relation("Payment_orderId", fields: [orderId], references: [id])
+  method         PaymentMethod
+  amount         Int
+  status         PaymentStatus
+  // Chặn thanh toán trùng khi client gửi lại cùng một request (BR10)
+  idempotencyKey String        @unique
+  gatewayRef     String?
+  cardLast4      String?
+  transferRef    String?
+  expiresAt      DateTime?
+  createdAt      DateTime      @default(now())
 
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  refunds Refund[] @relation("Refund_paymentId")
 
-  // Chặn thanh toán trùng khi client gửi lại cùng một request
-  idempotencyKey String @unique
+  @@index([orderId])
+  @@map("payment")
+}
 
-  amount    Int
-  method    PaymentMethod
-  status    PaymentStatus
-  createdAt DateTime      @default(now())
+model Refund {
+  id              Int          @id @default(autoincrement())
+  orderId         Int
+  order           Order        @relation("Refund_orderId", fields: [orderId], references: [id])
+  paymentId       Int
+  payment         Payment      @relation("Refund_paymentId", fields: [paymentId], references: [id])
+  amount          Int
+  reason          RefundReason
+  createdByUserId Int
+  createdByUser   User         @relation("Refund_createdByUserId", fields: [createdByUserId], references: [id])
+  note            String?
+  createdAt       DateTime     @default(now())
+
+  walletTransactions WalletTransaction[] @relation("WalletTransaction_refundId")
+  itemIssues         ItemIssue[]         @relation("ItemIssue_refundId")
+
+  @@map("refund")
+}
+
+model WalletTransaction {
+  id           Int                @id @default(autoincrement())
+  userId       Int
+  user         User               @relation("WalletTransaction_userId", fields: [userId], references: [id])
+  type         WalletTxType
+  amount       Int
+  refundId     Int?
+  refund       Refund?            @relation("WalletTransaction_refundId", fields: [refundId], references: [id])
+  withdrawalId Int?
+  withdrawal   WithdrawalRequest? @relation("WalletTransaction_withdrawalId", fields: [withdrawalId], references: [id])
+  createdAt    DateTime           @default(now())
+
+  @@index([userId, createdAt])
+  @@map("wallet_transaction")
+}
+
+model WithdrawalRequest {
+  id              Int              @id @default(autoincrement())
+  userId          Int
+  user            User             @relation("WithdrawalRequest_userId", fields: [userId], references: [id])
+  amount          Int
+  destinationType DestinationType
+  accountName     String
+  accountNumber   String
+  bankName        String?
+  status          WithdrawalStatus @default(PENDING)
+  rejectReason    String?
+  transferRef     String?
+  handledByUserId Int?
+  handledByUser   User?            @relation("WithdrawalRequest_handledByUserId", fields: [handledByUserId], references: [id])
+  handledAt       DateTime?
+  createdAt       DateTime         @default(now())
+
+  walletTransactions WalletTransaction[] @relation("WalletTransaction_withdrawalId")
+
+  @@index([status, createdAt])
+  @@map("withdrawal_request")
+}
+
+model ItemIssue {
+  id              Int            @id @default(autoincrement())
+  orderId         Int
+  order           Order          @relation("ItemIssue_orderId", fields: [orderId], references: [id])
+  orderItemId     Int
+  orderItem       OrderItem      @relation("ItemIssue_orderItemId", fields: [orderItemId], references: [id])
+  quantity        Int
+  resolution      ItemResolution
+  refundId        Int?
+  refund          Refund?        @relation("ItemIssue_refundId", fields: [refundId], references: [id])
+  note            String
+  handledByUserId Int
+  handledByUser   User           @relation("ItemIssue_handledByUserId", fields: [handledByUserId], references: [id])
+  createdAt       DateTime       @default(now())
+
+  @@map("item_issue")
+}
+
+// ───────────── Thông báo ─────────────
+
+model Notification {
+  id        Int                 @id @default(autoincrement())
+  userId    Int
+  user      User                @relation("Notification_userId", fields: [userId], references: [id])
+  orderId   Int?
+  order     Order?              @relation("Notification_orderId", fields: [orderId], references: [id])
+  event     NotificationEvent
+  channel   NotificationChannel
+  recipient String
+  content   String
+  status    NotificationStatus
+  createdAt DateTime            @default(now())
+
+  @@index([userId, createdAt])
+  @@map("notification")
 }
